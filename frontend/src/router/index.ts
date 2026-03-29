@@ -1,45 +1,45 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import SplashScreen from '../pages/auth/SplashScreen.vue'
-import WelcomeCarousel from '../pages/auth/WelcomeCarousel.vue'
-import LoginScreen from '../pages/auth/LoginScreen.vue'
-import OtpScreen from '../pages/auth/OtpScreen.vue'
-import RegisterScreen from '../pages/auth/RegisterScreen.vue'
-import ForgotPasswordScreen from '../pages/auth/ForgotPasswordScreen.vue'
-import PermissionsScreen from '../pages/auth/PermissionsScreen.vue'
+const SplashScreen = () => import('../pages/auth/SplashScreen.vue')
+const WelcomeCarousel = () => import('../pages/auth/WelcomeCarousel.vue')
+const LoginScreen = () => import('../pages/auth/LoginScreen.vue')
+const OtpScreen = () => import('../pages/auth/OtpScreen.vue')
+const RegisterScreen = () => import('../pages/auth/RegisterScreen.vue')
+const ForgotPasswordScreen = () => import('../pages/auth/ForgotPasswordScreen.vue')
+const PermissionsScreen = () => import('../pages/auth/PermissionsScreen.vue')
 
-import HomeScreen from '../pages/home/HomeScreen.vue'
-import LocationSearch from '../pages/booking/LocationSearch.vue'
-import DestinationSearch from '../pages/booking/DestinationSearch.vue'
-import SavedPlaces from '../pages/booking/SavedPlaces.vue'
-import RideOptions from '../pages/booking/RideOptions.vue'
-import FareEstimate from '../pages/booking/FareEstimate.vue'
-import PromoSelection from '../pages/booking/PromoSelection.vue'
-import PaymentMethod from '../pages/booking/PaymentMethod.vue'
-import BookingConfirmation from '../pages/booking/BookingConfirmation.vue'
-import FindingDriver from '../pages/booking/FindingDriver.vue'
-import DriverAssigned from '../pages/booking/DriverAssigned.vue'
-import TripInProgress from '../pages/booking/TripInProgress.vue'
-import TripCompleted from '../pages/booking/TripCompleted.vue'
-import RateRide from '../pages/booking/RateRide.vue'
+const HomeScreen = () => import('../pages/home/HomeScreen.vue')
+const LocationSearch = () => import('../pages/booking/LocationSearch.vue')
+const DestinationSearch = () => import('../pages/booking/DestinationSearch.vue')
+const SavedPlaces = () => import('../pages/booking/SavedPlaces.vue')
+const RideOptions = () => import('../pages/booking/RideOptions.vue')
+const FareEstimate = () => import('../pages/booking/FareEstimate.vue')
+const PromoSelection = () => import('../pages/booking/PromoSelection.vue')
+const PaymentMethod = () => import('../pages/booking/PaymentMethod.vue')
+const BookingConfirmation = () => import('../pages/booking/BookingConfirmation.vue')
+const FindingDriver = () => import('../pages/booking/FindingDriver.vue')
+const DriverAssigned = () => import('../pages/booking/DriverAssigned.vue')
+const TripInProgress = () => import('../pages/booking/TripInProgress.vue')
+const TripCompleted = () => import('../pages/booking/TripCompleted.vue')
+const RateRide = () => import('../pages/booking/RateRide.vue')
 
-import TripsList from '../pages/trips/TripsList.vue'
-import TripDetails from '../pages/trips/TripDetails.vue'
-import RewardsScreen from '../pages/rewards/RewardsScreen.vue'
-import NotificationsScreen from '../pages/notifications/NotificationsScreen.vue'
-import HelpCenter from '../pages/account/HelpCenter.vue'
-import AccountScreen from '../pages/account/AccountScreen.vue'
+const TripsList = () => import('../pages/trips/TripsList.vue')
+const TripDetails = () => import('../pages/trips/TripDetails.vue')
+const RewardsScreen = () => import('../pages/rewards/RewardsScreen.vue')
+const NotificationsScreen = () => import('../pages/notifications/NotificationsScreen.vue')
+const HelpCenter = () => import('../pages/account/HelpCenter.vue')
+const AccountScreen = () => import('../pages/account/AccountScreen.vue')
 
-import DriverLanding from '../pages/driver-apply/DriverLanding.vue'
-import DriverBenefits from '../pages/driver-apply/DriverBenefits.vue'
-import DriverRequirements from '../pages/driver-apply/DriverRequirements.vue'
-import DriverForm from '../pages/driver-apply/DriverForm.vue'
-import DriverDocuments from '../pages/driver-apply/DriverDocuments.vue'
-import DriverAvailability from '../pages/driver-apply/DriverAvailability.vue'
-import DriverReview from '../pages/driver-apply/DriverReview.vue'
-import DriverSubmitted from '../pages/driver-apply/DriverSubmitted.vue'
-import DriverStatus from '../pages/driver-apply/DriverStatus.vue'
-import DriverFaq from '../pages/driver-apply/DriverFaq.vue'
+const DriverLanding = () => import('../pages/driver-apply/DriverLanding.vue')
+const DriverBenefits = () => import('../pages/driver-apply/DriverBenefits.vue')
+const DriverRequirements = () => import('../pages/driver-apply/DriverRequirements.vue')
+const DriverForm = () => import('../pages/driver-apply/DriverForm.vue')
+const DriverDocuments = () => import('../pages/driver-apply/DriverDocuments.vue')
+const DriverAvailability = () => import('../pages/driver-apply/DriverAvailability.vue')
+const DriverReview = () => import('../pages/driver-apply/DriverReview.vue')
+const DriverSubmitted = () => import('../pages/driver-apply/DriverSubmitted.vue')
+const DriverStatus = () => import('../pages/driver-apply/DriverStatus.vue')
+const DriverFaq = () => import('../pages/driver-apply/DriverFaq.vue')
 
 const routes = [
   { path: '/', redirect: '/home' },
