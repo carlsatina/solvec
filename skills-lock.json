@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "skills": {
+    "nodejs-best-practices": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "64f10ff6795265dc4a97a72af86ee309fe57e6c35507775a4da893985984956b"
+    },
+    "receiving-code-review": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "computedHash": "2760c85d4f4117b0006e7ba755f4bbd61f8f4c185f347999763c97f507274e30"
+    },
+    "vue3-best-practices": {
+      "source": "eva813/vue3-skills",
+      "sourceType": "github",
+      "computedHash": "15d3cc51560111bae9b80f3d07f2732bcf34a4455f77f8b097b095c1bac649a3"
+    }
+  }
+}

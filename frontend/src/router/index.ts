@@ -51,43 +51,50 @@ const routes = [
   { path: '/auth/forgot', component: ForgotPasswordScreen, meta: { showTabs: false } },
   { path: '/auth/permissions', component: PermissionsScreen, meta: { showTabs: false } },
 
-  { path: '/home', component: HomeScreen, meta: { showTabs: true } },
-  { path: '/booking/location', component: LocationSearch, meta: { showTabs: false } },
-  { path: '/booking/destination', component: DestinationSearch, meta: { showTabs: false } },
-  { path: '/booking/saved-places', component: SavedPlaces, meta: { showTabs: false } },
-  { path: '/booking/ride-options', component: RideOptions, meta: { showTabs: false } },
-  { path: '/booking/fare', component: FareEstimate, meta: { showTabs: false } },
-  { path: '/booking/promo', component: PromoSelection, meta: { showTabs: false } },
-  { path: '/booking/payment', component: PaymentMethod, meta: { showTabs: false } },
-  { path: '/booking/confirm', component: BookingConfirmation, meta: { showTabs: false } },
-  { path: '/booking/finding', component: FindingDriver, meta: { showTabs: false } },
-  { path: '/booking/driver-assigned', component: DriverAssigned, meta: { showTabs: false } },
-  { path: '/booking/in-progress', component: TripInProgress, meta: { showTabs: false } },
-  { path: '/booking/completed', component: TripCompleted, meta: { showTabs: false } },
-  { path: '/booking/rate', component: RateRide, meta: { showTabs: false } },
+  { path: '/home', component: HomeScreen, meta: { showTabs: true, requiresAuth: true } },
+  { path: '/booking/location', component: LocationSearch, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/booking/destination', component: DestinationSearch, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/booking/saved-places', component: SavedPlaces, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/booking/ride-options', component: RideOptions, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/booking/fare', component: FareEstimate, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/booking/promo', component: PromoSelection, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/booking/payment', component: PaymentMethod, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/booking/confirm', component: BookingConfirmation, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/booking/finding', component: FindingDriver, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/booking/driver-assigned', component: DriverAssigned, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/booking/in-progress', component: TripInProgress, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/booking/completed', component: TripCompleted, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/booking/rate', component: RateRide, meta: { showTabs: false, requiresAuth: true } },
 
-  { path: '/trips', component: TripsList, meta: { showTabs: true } },
-  { path: '/trips/:id', component: TripDetails, meta: { showTabs: false } },
-  { path: '/rewards', component: RewardsScreen, meta: { showTabs: true } },
-  { path: '/notifications', component: NotificationsScreen, meta: { showTabs: true } },
-  { path: '/help', component: HelpCenter, meta: { showTabs: false } },
-  { path: '/account', component: AccountScreen, meta: { showTabs: true } },
+  { path: '/trips', component: TripsList, meta: { showTabs: true, requiresAuth: true } },
+  { path: '/trips/:id', component: TripDetails, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/rewards', component: RewardsScreen, meta: { showTabs: true, requiresAuth: true } },
+  { path: '/notifications', component: NotificationsScreen, meta: { showTabs: true, requiresAuth: true } },
+  { path: '/help', component: HelpCenter, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/account', component: AccountScreen, meta: { showTabs: true, requiresAuth: true } },
 
-  { path: '/driver/apply', component: DriverLanding, meta: { showTabs: false } },
-  { path: '/driver/benefits', component: DriverBenefits, meta: { showTabs: false } },
-  { path: '/driver/requirements', component: DriverRequirements, meta: { showTabs: false } },
-  { path: '/driver/form', component: DriverForm, meta: { showTabs: false } },
-  { path: '/driver/documents', component: DriverDocuments, meta: { showTabs: false } },
-  { path: '/driver/availability', component: DriverAvailability, meta: { showTabs: false } },
-  { path: '/driver/review', component: DriverReview, meta: { showTabs: false } },
-  { path: '/driver/submitted', component: DriverSubmitted, meta: { showTabs: false } },
-  { path: '/driver/status', component: DriverStatus, meta: { showTabs: false } },
-  { path: '/driver/faq', component: DriverFaq, meta: { showTabs: false } }
+  { path: '/driver/apply', component: DriverLanding, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/driver/benefits', component: DriverBenefits, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/driver/requirements', component: DriverRequirements, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/driver/form', component: DriverForm, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/driver/documents', component: DriverDocuments, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/driver/availability', component: DriverAvailability, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/driver/review', component: DriverReview, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/driver/submitted', component: DriverSubmitted, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/driver/status', component: DriverStatus, meta: { showTabs: false, requiresAuth: true } },
+  { path: '/driver/faq', component: DriverFaq, meta: { showTabs: false, requiresAuth: true } }
 ]
 
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+router.beforeEach((to) => {
+  if (!to.meta.requiresAuth) return true
+  const token = localStorage.getItem('auth_token')
+  if (!token) return { path: '/auth/login', query: { redirect: to.fullPath } }
+  return true
 })
 
 export default router
