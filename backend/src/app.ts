@@ -12,6 +12,7 @@ import notificationRoutes from './routes/notifications'
 import supportRoutes from './routes/support'
 import driverAppRoutes from './routes/driver-applications'
 import geoRoutes from './routes/geo'
+import driverRoutes from './routes/drivers'
 
 const app = express()
 
@@ -31,5 +32,6 @@ app.use('/notifications', notificationRoutes)
 app.use('/support', supportRoutes)
 app.use('/driver-applications', driverAppRoutes)
 app.use('/geo', geoRoutes)
+app.use('/drivers', driverRoutes)
 
 export default app

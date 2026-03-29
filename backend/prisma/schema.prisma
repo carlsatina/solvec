@@ -57,6 +57,7 @@ model User {
   supportTickets    SupportTicket[]
   driverApplication DriverApplication?
   vehicle           Vehicle?
+  driverLocation    DriverLocation?
 }
 
 model Profile {
@@ -211,4 +212,15 @@ model DriverAvailability {
   preferredCity String
 
   application DriverApplication @relation(fields: [applicationId], references: [id])
+}
+
+model DriverLocation {
+  id          String   @id @default(cuid())
+  driverId    String   @unique
+  lat         Float
+  lng         Float
+  isAvailable Boolean  @default(true)
+  updatedAt   DateTime @updatedAt
+
+  driver User @relation(fields: [driverId], references: [id])
 }

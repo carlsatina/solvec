@@ -46,6 +46,17 @@ async function main() {
     }
   })
 
+  await prisma.driverLocation.upsert({
+    where: { driverId: driver.id },
+    update: { lat: 14.5537, lng: 121.0250, isAvailable: true },
+    create: {
+      driverId: driver.id,
+      lat: 14.5537,
+      lng: 121.0250,
+      isAvailable: true
+    }
+  })
+
   await prisma.promo.upsert({
     where: { code: 'GREEN50' },
     update: {},

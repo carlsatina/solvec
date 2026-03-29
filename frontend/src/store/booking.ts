@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { api } from '../services/api'
+import { getSocket } from '../services/socket'
 
 export type RideType = 'ECO' | 'COMFORT' | 'XL'
 export type PaymentMethod = 'CASH' | 'EWALLET' | 'CARD'
@@ -18,6 +19,7 @@ export const useBookingStore = defineStore('booking', () => {
   const paymentMethod = ref<PaymentMethod>('CASH')
   const fareEstimate = ref<{ total: number; currency: string } | null>(null)
   const rideId = ref<string | null>(null)
+  const rideStatus = ref<string | null>(null)
   const loading = ref(false)
 
   function setPickup(data: LocationPoint) {
@@ -66,9 +68,21 @@ export const useBookingStore = defineStore('booking', () => {
         paymentMethod: paymentMethod.value
       })
       rideId.value = res.rideId
+      rideStatus.value = res.status
+      subscribeToRideUpdates(res.rideId)
     } finally {
       loading.value = false
     }
+  }
+
+  function subscribeToRideUpdates(id: string) {
+    const socket = getSocket()
+    socket.emit('join', { rideId: id })
+    socket.off('ride:status')
+    socket.on('ride:status', (payload: { rideId: string; status: string }) => {
+      if (payload.rideId !== id) return
+      rideStatus.value = payload.status
+    })
   }
 
   return {
@@ -78,6 +92,7 @@ export const useBookingStore = defineStore('booking', () => {
     paymentMethod,
     fareEstimate,
     rideId,
+    rideStatus,
     loading,
     setPickup,
     setDropoff,

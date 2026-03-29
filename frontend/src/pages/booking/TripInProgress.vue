@@ -18,8 +18,20 @@
 <script setup lang="ts">
 import AppHeader from '../../components/AppHeader.vue'
 import NativeMap from '../../components/NativeMap.vue'
+import { useBookingStore } from '../../store/booking'
+import { watch } from 'vue'
+import { useRouter } from 'vue-router'
 
 const center = { lat: 14.5995, lng: 120.9842 }
+const booking = useBookingStore()
+const router = useRouter()
+
+watch(
+  () => booking.rideStatus,
+  (status) => {
+    if (status === 'COMPLETED') router.push('/booking/completed')
+  }
+)
 </script>
 
 <style scoped>
