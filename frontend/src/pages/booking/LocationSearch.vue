@@ -5,15 +5,20 @@
       <template #subtitle>Use landmarks and barangay names</template>
     </AppHeader>
     <input v-model="query" class="input" placeholder="Search pickup" />
-    <div class="card">
-      <div class="section-title">Nearby</div>
-      <ul class="list">
-        <li>SM Mall of Asia</li>
-        <li>Ayala Triangle Gardens</li>
-        <li>Bonifacio Global City</li>
-      </ul>
+    <div v-if="loading" class="card">
+      <div class="section-title">Searching...</div>
+      <p class="text-secondary">Fetching nearby places</p>
     </div>
-    <button class="button button-primary" @click="useLocation">Use this pickup</button>
+    <div v-else class="card">
+      <div class="section-title">Results</div>
+      <ul class="list">
+        <li v-for="place in results" :key="place.placeId" @click="pick(place.placeId)">
+          {{ place.description }}
+        </li>
+      </ul>
+      <p v-if="!results.length" class="text-secondary">Type at least 3 characters</p>
+    </div>
+    <button class="button button-primary" :disabled="!selected" @click="useLocation">Use this pickup</button>
   </div>
 </template>
 
@@ -22,13 +27,23 @@ import AppHeader from '../../components/AppHeader.vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBookingStore } from '../../store/booking'
+import { usePlacesSearch } from '../../composables/usePlacesSearch'
 
-const query = ref('Ayala Avenue, Makati City')
 const router = useRouter()
 const booking = useBookingStore()
+const { query, results, loading, selectPlace } = usePlacesSearch()
+const selected = ref<{ address: string; lat: number; lng: number } | null>(null)
+
+async function pick(placeId: string) {
+  const details = await selectPlace(placeId)
+  if (!details) return
+  selected.value = { address: details.address, lat: details.lat, lng: details.lng }
+  query.value = details.address
+}
 
 function useLocation() {
-  booking.setPickup({ address: query.value, lat: 14.5547, lng: 121.0244 })
+  if (!selected.value) return
+  booking.setPickup(selected.value)
   router.push('/booking/destination')
 }
 </script>

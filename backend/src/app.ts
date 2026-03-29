@@ -11,6 +11,7 @@ import rewardRoutes from './routes/rewards'
 import notificationRoutes from './routes/notifications'
 import supportRoutes from './routes/support'
 import driverAppRoutes from './routes/driver-applications'
+import geoRoutes from './routes/geo'
 
 const app = express()
 
@@ -29,5 +30,6 @@ app.use('/rewards', rewardRoutes)
 app.use('/notifications', notificationRoutes)
 app.use('/support', supportRoutes)
 app.use('/driver-applications', driverAppRoutes)
+app.use('/geo', geoRoutes)
 
 export default app

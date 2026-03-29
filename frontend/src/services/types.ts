@@ -35,3 +35,15 @@ export type CreateBookingRequest = {
 }
 
 export type CreateBookingResponse = { ok: boolean; rideId: string; status: string }
+
+export type PlacesAutocompleteResponse = {
+  items: Array<{ placeId: string; description: string }>
+}
+
+export type PlaceDetailsResponse = {
+  placeId: string
+  address: string
+  name?: string
+  lat: number
+  lng: number
+}
