@@ -18,15 +18,24 @@
       <p class="text-secondary">Weekdays 7:00 AM – 9:00 PM</p>
       <button class="button button-secondary">Edit schedule</button>
     </div>
-    <button class="button button-primary">Next</button>
+    <button class="button button-primary" :disabled="driverApp.loading" @click="next">Next</button>
   </div>
 </template>
 
 <script setup lang="ts">
 import AppHeader from '../../components/AppHeader.vue'
 import ProgressStepper from '../../components/ProgressStepper.vue'
+import { useRouter } from 'vue-router'
+import { useDriverApplicationStore } from '../../store/driverApplication'
 
 const steps = ['Info', 'Docs', 'Schedule', 'Review']
+const router = useRouter()
+const driverApp = useDriverApplicationStore()
+
+async function next() {
+  await driverApp.setAvailability({ days: 'Mon-Fri', hours: '07:00-21:00', preferredCity: 'Taguig' })
+  router.push('/driver/review')
+}
 </script>
 
 <style scoped>

@@ -99,6 +99,35 @@ async function main() {
       }
     }
   })
+
+  await prisma.driverApplication.upsert({
+    where: { userId: driver.id },
+    update: {},
+    create: {
+      userId: driver.id,
+      fullName: driver.name,
+      phone: driver.phone,
+      email: driver.email ?? undefined,
+      address: 'Taguig City, Metro Manila',
+      experienceYears: 5,
+      preferredArea: 'BGC, Makati',
+      status: 'UNDER_REVIEW',
+      submittedAt: new Date(),
+      documents: {
+        create: [
+          { type: 'LICENSE', fileUrl: 'https://example.com/license.jpg', status: 'APPROVED' },
+          { type: 'NBI_CLEARANCE', fileUrl: 'https://example.com/nbi.jpg', status: 'PENDING' }
+        ]
+      },
+      availability: {
+        create: {
+          days: 'Mon-Fri',
+          hours: '07:00-21:00',
+          preferredCity: 'Taguig'
+        }
+      }
+    }
+  })
 }
 
 main()

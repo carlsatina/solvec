@@ -47,3 +47,44 @@ export type PlaceDetailsResponse = {
   lat: number
   lng: number
 }
+
+export type DriverApplication = {
+  id: string
+  status: string
+  fullName?: string
+  phone?: string
+  email?: string
+  address?: string
+  experienceYears?: number
+  preferredArea?: string
+  submittedAt?: string
+  interviewAt?: string
+}
+
+export type DriverApplicationCreate = {
+  userId: string
+  fullName: string
+  phone: string
+  email?: string
+  address: string
+}
+
+export type DriverApplicationUpdate = Partial<{
+  fullName: string
+  phone: string
+  email: string
+  address: string
+  experienceYears: number
+  preferredArea: string
+}>
+
+export type DriverDocumentCreate = {
+  type: string
+  fileUrl: string
+}
+
+export type DriverAvailabilityCreate = {
+  days: string
+  hours: string
+  preferredCity: string
+}

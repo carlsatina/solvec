@@ -13,6 +13,7 @@ import supportRoutes from './routes/support'
 import driverAppRoutes from './routes/driver-applications'
 import geoRoutes from './routes/geo'
 import driverRoutes from './routes/drivers'
+import adminRoutes from './routes/admin'
 
 const app = express()
 
@@ -33,5 +34,6 @@ app.use('/support', supportRoutes)
 app.use('/driver-applications', driverAppRoutes)
 app.use('/geo', geoRoutes)
 app.use('/drivers', driverRoutes)
+app.use('/admin', adminRoutes)
 
 export default app

@@ -11,7 +11,12 @@ import type {
   CreateBookingRequest,
   CreateBookingResponse,
   PlacesAutocompleteResponse,
-  PlaceDetailsResponse
+  PlaceDetailsResponse,
+  DriverApplication,
+  DriverApplicationCreate,
+  DriverApplicationUpdate,
+  DriverDocumentCreate,
+  DriverAvailabilityCreate
 } from './types'
 
 export const api = {
@@ -22,5 +27,16 @@ export const api = {
   estimateFare: (payload: FareEstimateRequest) => request<FareEstimateResponse>('/bookings/estimate', { method: 'POST', body: payload }),
   createBooking: (payload: CreateBookingRequest) => request<CreateBookingResponse>('/bookings', { method: 'POST', body: payload }),
   placesAutocomplete: (input: string) => request<PlacesAutocompleteResponse>(`/geo/autocomplete?input=${encodeURIComponent(input)}`),
-  placeDetails: (placeId: string) => request<PlaceDetailsResponse>(`/geo/details?placeId=${encodeURIComponent(placeId)}`)
+  placeDetails: (placeId: string) => request<PlaceDetailsResponse>(`/geo/details?placeId=${encodeURIComponent(placeId)}`),
+  createDriverApplication: (payload: DriverApplicationCreate) =>
+    request<{ ok: boolean; application: DriverApplication }>('/driver-applications', { method: 'POST', body: payload }),
+  updateDriverApplication: (id: string, payload: DriverApplicationUpdate) =>
+    request<{ ok: boolean; application: DriverApplication }>(`/driver-applications/${id}`, { method: 'PUT', body: payload }),
+  submitDriverApplication: (id: string) =>
+    request<{ ok: boolean; application: DriverApplication }>(`/driver-applications/${id}/submit`, { method: 'POST' }),
+  uploadDriverDocument: (id: string, payload: DriverDocumentCreate) =>
+    request<{ ok: boolean }>(`/driver-applications/${id}/documents`, { method: 'POST', body: payload }),
+  setDriverAvailability: (id: string, payload: DriverAvailabilityCreate) =>
+    request<{ ok: boolean }>(`/driver-applications/${id}/availability`, { method: 'POST', body: payload }),
+  getDriverApplication: (id: string) => request<DriverApplication>(`/driver-applications/${id}`)
 }

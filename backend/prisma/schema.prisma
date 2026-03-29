@@ -185,6 +185,15 @@ model DriverApplication {
   id          String            @id @default(cuid())
   userId      String            @unique
   status      ApplicationStatus @default(DRAFT)
+  fullName    String?
+  phone       String?
+  email       String?
+  address     String?
+  experienceYears Int?
+  preferredArea  String?
+  submittedAt DateTime?
+  interviewAt DateTime?
+  notes       String?
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
 
@@ -198,7 +207,7 @@ model DriverDocument {
   applicationId   String
   type            String
   fileUrl         String
-  status          String
+  status          String @default("PENDING")
   createdAt       DateTime @default(now())
 
   application DriverApplication @relation(fields: [applicationId], references: [id])
