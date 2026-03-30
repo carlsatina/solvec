@@ -5,15 +5,35 @@ import { getIo } from '../socket'
 
 const router = Router()
 
-router.post('/estimate', (_req, res) => {
+const fareEstimateSchema = z.object({
+  pickupLat: z.number(),
+  pickupLng: z.number(),
+  dropoffLat: z.number(),
+  dropoffLng: z.number()
+})
+
+router.post('/estimate', (req, res) => {
+  const parsed = fareEstimateSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return res.status(422).json({ error: parsed.error.flatten() })
+  }
+
+  const { pickupLat, pickupLng, dropoffLat, dropoffLng } = parsed.data
+  const distanceKm = haversine(pickupLat, pickupLng, dropoffLat, dropoffLng)
+  const durationMin = Math.max(4, (distanceKm / 22) * 60)
+
+  const breakdown = {
+    base: 55,
+    distance: Math.round(distanceKm * 15),
+    time: Math.round(durationMin * 2.8)
+  }
+
   res.json({
     currency: 'PHP',
-    total: 286,
-    breakdown: {
-      base: 60,
-      distance: 146,
-      time: 80
-    }
+    total: breakdown.base + breakdown.distance + breakdown.time,
+    distanceKm: Number(distanceKm.toFixed(2)),
+    durationMin: Math.round(durationMin),
+    breakdown
   })
 })
 

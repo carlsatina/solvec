@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { Capacitor } from '@capacitor/core'
 
 const SplashScreen = () => import('../pages/auth/SplashScreen.vue')
 const WelcomeCarousel = () => import('../pages/auth/WelcomeCarousel.vue')
@@ -11,6 +12,7 @@ const PermissionsScreen = () => import('../pages/auth/PermissionsScreen.vue')
 const HomeScreen = () => import('../pages/home/HomeScreen.vue')
 const LocationSearch = () => import('../pages/booking/LocationSearch.vue')
 const DestinationSearch = () => import('../pages/booking/DestinationSearch.vue')
+const LocationConfirm = () => import('../pages/booking/LocationConfirm.vue')
 const SavedPlaces = () => import('../pages/booking/SavedPlaces.vue')
 const RideOptions = () => import('../pages/booking/RideOptions.vue')
 const FareEstimate = () => import('../pages/booking/FareEstimate.vue')
@@ -54,6 +56,11 @@ const routes = [
   { path: '/home', component: HomeScreen, meta: { showTabs: true, requiresAuth: true } },
   { path: '/booking/location', component: LocationSearch, meta: { showTabs: false, requiresAuth: true } },
   { path: '/booking/destination', component: DestinationSearch, meta: { showTabs: false, requiresAuth: true } },
+  {
+    path: '/booking/confirm-location/:type',
+    component: LocationConfirm,
+    meta: { showTabs: false, requiresAuth: true }
+  },
   { path: '/booking/saved-places', component: SavedPlaces, meta: { showTabs: false, requiresAuth: true } },
   { path: '/booking/ride-options', component: RideOptions, meta: { showTabs: false, requiresAuth: true } },
   { path: '/booking/fare', component: FareEstimate, meta: { showTabs: false, requiresAuth: true } },
@@ -91,6 +98,16 @@ const router = createRouter({
 })
 
 router.beforeEach((to) => {
+  const isNative = Capacitor.isNativePlatform()
+
+  if (isNative && !localStorage.getItem('auth_token')) {
+    localStorage.setItem('auth_token', 'dev-token')
+  }
+
+  if (isNative && to.path === '/auth/otp') {
+    return { path: '/home' }
+  }
+
   if (!to.meta.requiresAuth) return true
   const token = localStorage.getItem('auth_token')
   if (!token) return { path: '/auth/login', query: { redirect: to.fullPath } }

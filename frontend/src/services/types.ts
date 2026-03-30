@@ -17,6 +17,8 @@ export type FareEstimateRequest = {
 export type FareEstimateResponse = {
   currency: string
   total: number
+  distanceKm?: number
+  durationMin?: number
   breakdown: {
     base: number
     distance: number
@@ -46,6 +48,19 @@ export type PlaceDetailsResponse = {
   name?: string
   lat: number
   lng: number
+}
+
+export type ReverseGeocodeResponse = {
+  address: string
+  placeId?: string
+  lat: number
+  lng: number
+}
+
+export type RouteResponse = {
+  polyline: string
+  distanceMeters: number
+  durationSeconds: number
 }
 
 export type DriverApplication = {

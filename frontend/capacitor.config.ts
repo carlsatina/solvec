@@ -4,7 +4,10 @@ const config: CapacitorConfig = {
   appId: 'com.solvec.evtaxi',
   appName: 'Solvec EV Taxi',
   webDir: 'dist',
-  bundledWebRuntime: false
+  bundledWebRuntime: false,
+  android: {
+    allowMixedContent: true
+  }
 }
 
 export default config

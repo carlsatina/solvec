@@ -12,6 +12,8 @@ import type {
   CreateBookingResponse,
   PlacesAutocompleteResponse,
   PlaceDetailsResponse,
+  ReverseGeocodeResponse,
+  RouteResponse,
   DriverApplication,
   DriverApplicationCreate,
   DriverApplicationUpdate,
@@ -28,6 +30,12 @@ export const api = {
   createBooking: (payload: CreateBookingRequest) => request<CreateBookingResponse>('/bookings', { method: 'POST', body: payload }),
   placesAutocomplete: (input: string) => request<PlacesAutocompleteResponse>(`/geo/autocomplete?input=${encodeURIComponent(input)}`),
   placeDetails: (placeId: string) => request<PlaceDetailsResponse>(`/geo/details?placeId=${encodeURIComponent(placeId)}`),
+  reverseGeocode: (lat: number, lng: number) =>
+    request<ReverseGeocodeResponse>(`/geo/reverse?lat=${encodeURIComponent(String(lat))}&lng=${encodeURIComponent(String(lng))}`),
+  route: (originLat: number, originLng: number, destinationLat: number, destinationLng: number) =>
+    request<RouteResponse>(
+      `/geo/route?originLat=${encodeURIComponent(String(originLat))}&originLng=${encodeURIComponent(String(originLng))}&destinationLat=${encodeURIComponent(String(destinationLat))}&destinationLng=${encodeURIComponent(String(destinationLng))}`
+    ),
   createDriverApplication: (payload: DriverApplicationCreate) =>
     request<{ ok: boolean; application: DriverApplication }>('/driver-applications', { method: 'POST', body: payload }),
   updateDriverApplication: (id: string, payload: DriverApplicationUpdate) =>

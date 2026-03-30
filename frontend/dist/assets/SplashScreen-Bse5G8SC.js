@@ -1,1 +1,0 @@
-import{_ as a,o as c,c as o,a as s}from"./index-CEpZy0LK.js";const r={},t={class:"app-screen splash"};function l(n,e){return c(),o("div",t,[...e[0]||(e[0]=[s("div",{class:"logo"},"Solvec EV Taxi",-1),s("div",{class:"loader"},null,-1)])])}const _=a(r,[["render",l],["__scopeId","data-v-14ccf209"]]);export{_ as default};
