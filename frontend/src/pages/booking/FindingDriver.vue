@@ -89,7 +89,7 @@
       </transition>
 
       <transition name="details">
-        <button v-if="expanded" class="cancel-btn" type="button">Cancel Booking</button>
+        <button v-if="expanded" class="cancel-btn" type="button" :disabled="booking.loading" @click="cancelBooking">Cancel Booking</button>
       </transition>
     </section>
   </div>
@@ -125,7 +125,10 @@ const collapsedPeek = 280
 const pendingOffset = ref(0)
 const rafId = ref<number | null>(null)
 
-const mapCenter = computed(() => booking.pickup || { lat: 14.5995, lng: 120.9842 })
+const mapCenter = computed(() => {
+  const loc = booking.pickup
+  return loc ? { lat: loc.lat, lng: loc.lng } : { lat: 14.5995, lng: 120.9842 }
+})
 const mapMarkers = computed(() => {
   const markers: Array<{ lat: number; lng: number; title?: string }> = []
   if (booking.pickup) markers.push({ lat: booking.pickup.lat, lng: booking.pickup.lng, title: 'Pickup' })
@@ -342,6 +345,11 @@ function goBack() {
   router.back()
 }
 
+async function cancelBooking() {
+  await booking.cancelBooking()
+  router.back()
+}
+
 onBeforeUnmount(() => {
   window.removeEventListener('resize', recalcSheetBounds)
   if (rafId.value != null) {
@@ -356,7 +364,7 @@ onBeforeUnmount(() => {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: transparent;
   overflow: hidden;
 }
 

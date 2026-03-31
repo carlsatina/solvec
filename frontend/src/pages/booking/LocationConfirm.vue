@@ -1,19 +1,22 @@
 <template>
   <div class="confirm-screen">
     <div class="map-container">
-      <NativeMap :center="mapCenter" :zoom="17" :map-id="mapId" />
       <button class="map-back" type="button" @click="goBack" aria-label="Back">
         <span class="back-icon" aria-hidden="true"></span>
       </button>
-      <button class="map-gps" type="button" aria-label="Recenter">
-        <span class="gps-icon" aria-hidden="true"></span>
-      </button>
-      <div class="map-pin" aria-hidden="true"></div>
-      <div class="map-chip">{{ chipLabel }}</div>
+      <NativeMap
+        :center="mapCenter"
+        :zoom="17"
+        :map-id="mapId"
+        :markers="mapMarkers"
+        :interactive="true"
+        @marker-drag-end="onMarkerDragEnd"
+      />
     </div>
 
     <section class="sheet">
       <div class="sheet-handle"></div>
+      <div class="sheet-chip">{{ chipLabel }}</div>
       <div class="sheet-list">
         <div class="sheet-item">
           <div class="sheet-icon"></div>
@@ -45,10 +48,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import NativeMap from '../../components/NativeMap.vue'
 import { useBookingStore } from '../../store/booking'
+import { api } from '../../services/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -57,25 +61,59 @@ const booking = useBookingStore()
 const type = computed(() => (route.params.type === 'dropoff' ? 'dropoff' : 'pickup'))
 const current = computed(() => (type.value === 'pickup' ? booking.pickup : booking.dropoff))
 
-const mapCenter = computed(() => current.value ?? { lat: 14.5995, lng: 120.9842 })
+// Static initial center — does not react to store changes so the map
+// doesn't re-pan after the user drags the marker.
+const mapCenter = ref(
+  current.value
+    ? { lat: current.value.lat, lng: current.value.lng }
+    : { lat: 14.5995, lng: 120.9842 }
+)
 const mapId = computed(() => `solvec-map-${type.value}`)
+
+// Plain non-reactive array — keeps the marker from triggering the NativeMap
+// watcher (which would re-pan the camera) after a drag-end update.
+const mapMarkers = [{ lat: mapCenter.value.lat, lng: mapCenter.value.lng, draggable: true }]
+
+// Resolved address is updated by reverse geocode after each marker drag.
+const resolvedAddress = ref(current.value?.address ?? '')
+const geocoding = ref(false)
+
 const confirmLabel = computed(() => (type.value === 'pickup' ? 'Confirm Pickup' : 'Confirm drop-off'))
 const chipLabel = computed(() =>
-  current.value?.address ? `Near ${current.value.address.split(',')[0]}` : 'Select location'
+  resolvedAddress.value ? `Near ${resolvedAddress.value.split(',')[0]}` : 'Select location'
 )
 const titleText = computed(() => chipLabel.value)
-const subtitleText = computed(() => current.value?.address ?? 'Choose a nearby landmark')
+const subtitleText = computed(() => resolvedAddress.value || 'Choose a nearby landmark')
 
 const nearbyOptions = computed(() => {
-  if (!current.value?.address) return []
-  const parts = current.value.address.split(',')
-  const area = parts.slice(1).join(',').trim() || current.value.address
+  if (!resolvedAddress.value) return []
+  const parts = resolvedAddress.value.split(',')
+  const area = parts.slice(1).join(',').trim() || resolvedAddress.value
   return [
     { title: parts[0], subtitle: area },
     { title: `${parts[0]} Corner`, subtitle: area },
     { title: `${parts[0]} Entrance`, subtitle: area }
   ]
 })
+
+async function onMarkerDragEnd(coords: { lat: number; lng: number }) {
+  geocoding.value = true
+  try {
+    const result = await api.reverseGeocode(coords.lat, coords.lng)
+    resolvedAddress.value = result.address
+
+    const location = { address: result.address, lat: coords.lat, lng: coords.lng }
+    if (type.value === 'pickup') {
+      booking.setPickup(location)
+    } else {
+      booking.setDropoff(location)
+    }
+  } catch {
+    // keep existing address on error
+  } finally {
+    geocoding.value = false
+  }
+}
 
 function goBack() {
   router.back()
@@ -96,21 +134,10 @@ function confirmLocation() {
 
 <style scoped>
 .confirm-screen {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #fff;
-}
-
-.map-container {
-  position: relative;
-  flex: 1;
-  min-height: 360px;
-}
-
-.map-container :deep(.native-map) {
-  border-radius: 0;
-  min-height: 360px;
+  background: transparent;
 }
 
 .map-back {
@@ -126,6 +153,7 @@ function confirmLocation() {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  z-index: 5;
 }
 
 .back-icon {
@@ -136,71 +164,17 @@ function confirmLocation() {
   transform: rotate(45deg);
 }
 
-.map-gps {
-  position: absolute;
-  right: 16px;
-  bottom: 120px;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  border: none;
-  background: #fff;
-  box-shadow: 0 8px 16px rgba(17, 24, 39, 0.16);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.gps-icon {
-  width: 18px;
-  height: 18px;
-  border: 2px solid #1b1f1e;
-  border-radius: 50%;
+.map-container {
+  flex: 1;
   position: relative;
+  background: transparent;
 }
 
-.gps-icon::after {
-  content: '';
-  position: absolute;
-  inset: 5px;
-  border: 2px solid #1b1f1e;
-  border-radius: 50%;
+.map-container :deep(.native-map) {
+  border-radius: 0;
+  height: 100%;
 }
 
-.map-pin {
-  position: absolute;
-  left: 50%;
-  top: 45%;
-  transform: translate(-50%, -50%);
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #111;
-  box-shadow: 0 0 0 8px rgba(17, 17, 17, 0.18);
-}
-
-.map-pin::after {
-  content: '';
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #fff;
-  left: 5px;
-  top: 5px;
-}
-
-.map-chip {
-  position: absolute;
-  left: 50%;
-  top: 30%;
-  transform: translateX(-50%);
-  background: #fff;
-  padding: 10px 16px;
-  border-radius: 999px;
-  box-shadow: 0 8px 18px rgba(17, 24, 39, 0.16);
-  font-weight: 600;
-}
 
 .sheet {
   background: #eaf8f8;
@@ -217,6 +191,13 @@ function confirmLocation() {
   border-radius: 999px;
   background: #cfe3e3;
   margin: 0 auto;
+}
+
+.sheet-chip {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-align: center;
 }
 
 .sheet-list {

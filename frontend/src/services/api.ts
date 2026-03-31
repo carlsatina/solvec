@@ -28,6 +28,7 @@ export const api = {
   me: () => request<UserProfile>('/users/me'),
   estimateFare: (payload: FareEstimateRequest) => request<FareEstimateResponse>('/bookings/estimate', { method: 'POST', body: payload }),
   createBooking: (payload: CreateBookingRequest) => request<CreateBookingResponse>('/bookings', { method: 'POST', body: payload }),
+  cancelBooking: (rideId: string) => request<{ ok: boolean }>(`/bookings/${rideId}/cancel`, { method: 'POST' }),
   placesAutocomplete: (input: string) => request<PlacesAutocompleteResponse>(`/geo/autocomplete?input=${encodeURIComponent(input)}`),
   placeDetails: (placeId: string) => request<PlaceDetailsResponse>(`/geo/details?placeId=${encodeURIComponent(placeId)}`),
   reverseGeocode: (lat: number, lng: number) =>

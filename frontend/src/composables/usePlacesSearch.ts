@@ -1,5 +1,7 @@
 import { ref, watch } from 'vue'
 import { api } from '../services/api'
+import { Capacitor } from '@capacitor/core'
+import { NativePlaces } from '../plugins/nativePlaces'
 
 type PlacePrediction = { placeId: string; description: string }
 
@@ -17,6 +19,7 @@ export function usePlacesSearch() {
   const loading = ref(false)
   const error = ref<string | null>(null)
   let timer: number | undefined
+  const useNativePlaces = Capacitor.getPlatform() === 'android'
 
   watch(
     () => query.value,
@@ -30,7 +33,9 @@ export function usePlacesSearch() {
         loading.value = true
         error.value = null
         try {
-          const res = await api.placesAutocomplete(value)
+          const res = useNativePlaces
+            ? await NativePlaces.autocomplete({ input: value })
+            : await api.placesAutocomplete(value)
           results.value = res.items
         } catch (err) {
           error.value = err instanceof Error ? err.message : 'Search failed'
@@ -45,7 +50,9 @@ export function usePlacesSearch() {
     loading.value = true
     error.value = null
     try {
-      const res = await api.placeDetails(placeId)
+      const res = useNativePlaces
+        ? await NativePlaces.details({ placeId })
+        : await api.placeDetails(placeId)
       return res
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Lookup failed'

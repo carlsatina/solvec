@@ -7,7 +7,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.11.2'
+        classpath 'com.android.tools.build:gradle:8.13.2'
         classpath 'com.google.gms:google-services:4.4.0'
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -25,24 +25,16 @@ allprojects {
 }
 
 subprojects {
-    // Only configure Kotlin compile tasks if Kotlin is on the classpath.
-    try {
-        def kotlinCompile = Class.forName("org.jetbrains.kotlin.gradle.tasks.KotlinCompile")
-        tasks.withType(kotlinCompile).configureEach {
-            // Force Kotlin JVM target to 17 to match Java compile target.
-            try {
-                compilerOptions {
-                    jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
-                }
-            } catch (Throwable ignored) {
-                // Fallback for older Kotlin DSLs.
-                kotlinOptions {
-                    jvmTarget = '17'
-                }
-            }
+    // Force Java + Kotlin to target 17 (avoids JVM target mismatch with JDK 21).
+    tasks.withType(JavaCompile).configureEach {
+        sourceCompatibility = '17'
+        targetCompatibility = '17'
+    }
+
+    tasks.matching { it.name.toLowerCase().contains('kotlin') && it.hasProperty('kotlinOptions') }.configureEach {
+        kotlinOptions {
+            jvmTarget = '17'
         }
-    } catch (ClassNotFoundException ignored) {
-        // Kotlin plugin not present; nothing to configure.
     }
 }
 

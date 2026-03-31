@@ -28,6 +28,11 @@
     </div>
 
     <section class="sheet">
+      <div v-if="fareError || routeError" class="debug-errors">
+        <div v-if="fareError">Fare error: {{ fareError }}</div>
+        <div v-if="routeError">Route error: {{ routeError }}</div>
+      </div>
+
       <div class="car-card">
         <div class="car-visual" aria-hidden="true"></div>
         <div class="car-meta">
@@ -70,8 +75,13 @@ const dropoffAddress = computed(() => booking.dropoff?.address || 'No destinatio
 const routeDistanceKm = ref<number | null>(null)
 const routeDurationMin = ref<number | null>(null)
 const routePath = ref<Array<{ lat: number; lng: number }>>([])
+const fareError = ref<string | null>(null)
+const routeError = ref<string | null>(null)
 
-const mapCenter = computed(() => booking.pickup || { lat: 14.5995, lng: 120.9842 })
+const mapCenter = computed(() => {
+  const loc = booking.pickup
+  return loc ? { lat: loc.lat, lng: loc.lng } : { lat: 14.5995, lng: 120.9842 }
+})
 const mapMarkers = computed(() => {
   const markers: Array<{ lat: number; lng: number; title?: string }> = []
   if (booking.pickup) markers.push({ lat: booking.pickup.lat, lng: booking.pickup.lng, title: 'Pickup' })
@@ -147,11 +157,11 @@ async function loadRoute() {
     routePath.value = route.polyline ? decodePolyline(route.polyline) : []
     routeDistanceKm.value = route.distanceMeters / 1000
     routeDurationMin.value = Math.max(1, Math.round(route.durationSeconds / 60))
-  } catch {
-    routePath.value = [
-      { lat: booking.pickup.lat, lng: booking.pickup.lng },
-      { lat: booking.dropoff.lat, lng: booking.dropoff.lng }
-    ]
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('[RideOptions] loadRoute failed', msg)
+    routeError.value = msg
+    routePath.value = []
   }
 }
 
@@ -161,7 +171,10 @@ onMounted(async () => {
     return
   }
 
-  await Promise.all([booking.estimateFare(), loadRoute()])
+  const [fareResult] = await Promise.allSettled([booking.estimateFare(), loadRoute()])
+  if (fareResult.status === 'rejected') {
+    fareError.value = fareResult.reason instanceof Error ? fareResult.reason.message : String(fareResult.reason)
+  }
 })
 
 function goBack() {
@@ -175,11 +188,21 @@ async function bookRide() {
 </script>
 
 <style scoped>
+.debug-errors {
+  background: #fee2e2;
+  border: 1px solid #ef4444;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #991b1b;
+  word-break: break-all;
+}
+
 .route-screen {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: transparent;
 }
 
 .map-area {

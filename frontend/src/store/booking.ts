@@ -17,7 +17,7 @@ export const useBookingStore = defineStore('booking', () => {
   const dropoff = ref<LocationPoint | null>(null)
   const rideType = ref<RideType>('ECO')
   const paymentMethod = ref<PaymentMethod>('CASH')
-  const fareEstimate = ref<{ total: number; currency: string } | null>(null)
+  const fareEstimate = ref<{ total: number; currency: string; distanceKm?: number; durationMin?: number } | null>(null)
   const rideId = ref<string | null>(null)
   const rideStatus = ref<string | null>(null)
   const loading = ref(false)
@@ -48,7 +48,9 @@ export const useBookingStore = defineStore('booking', () => {
         dropoffLat: dropoff.value.lat,
         dropoffLng: dropoff.value.lng
       })
-      fareEstimate.value = { total: res.total, currency: res.currency }
+      fareEstimate.value = { total: res.total, currency: res.currency, distanceKm: res.distanceKm, durationMin: res.durationMin }
+    } catch (err) {
+      console.error('[booking] estimateFare failed', err)
     } finally {
       loading.value = false
     }
@@ -70,6 +72,17 @@ export const useBookingStore = defineStore('booking', () => {
       rideId.value = res.rideId
       rideStatus.value = res.status
       subscribeToRideUpdates(res.rideId)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function cancelBooking() {
+    if (!rideId.value) return
+    loading.value = true
+    try {
+      await api.cancelBooking(rideId.value)
+      rideStatus.value = 'CANCELLED'
     } finally {
       loading.value = false
     }
@@ -99,6 +112,7 @@ export const useBookingStore = defineStore('booking', () => {
     setRideType,
     setPaymentMethod,
     estimateFare,
-    createBooking
+    createBooking,
+    cancelBooking
   }
 })

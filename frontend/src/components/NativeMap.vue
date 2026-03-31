@@ -1,8 +1,5 @@
 <template>
-  <div v-if="!isNative" class="map-frame">
-    <div class="map-pin"></div>
-    <div class="map-label">Google Maps (native) not available on web</div>
-  </div>
+  <div v-if="!isNative" ref="webMapRef" class="native-map"></div>
   <capacitor-google-map v-else ref="mapRef" class="native-map"></capacitor-google-map>
 </template>
 
@@ -10,25 +7,34 @@
 import type { Marker, Polyline } from '@capacitor/google-maps'
 import { GoogleMap, LatLngBounds } from '@capacitor/google-maps'
 import { Capacitor } from '@capacitor/core'
-import { computed, onBeforeUnmount, onMounted, shallowRef, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, shallowRef, watch } from 'vue'
+
+const emit = defineEmits<{
+  cameraIdle: [coords: { lat: number; lng: number }]
+  markerDragEnd: [coords: { lat: number; lng: number }]
+}>()
 
 const props = withDefaults(
   defineProps<{
     mapId?: string
     center: { lat: number; lng: number }
     zoom?: number
-    markers?: Array<{ lat: number; lng: number; title?: string }>
+    markers?: Array<{ lat: number; lng: number; title?: string; draggable?: boolean }>
     path?: Array<{ lat: number; lng: number }>
+    interactive?: boolean
   }>(),
   {
     mapId: 'solvec-map',
     zoom: 14,
     markers: () => [],
-    path: () => []
+    path: () => [],
+    interactive: true
   }
 )
 
 const isNative = computed(() => Capacitor.isNativePlatform())
+
+// --- Native (Capacitor) ---
 const mapRef = shallowRef<HTMLElement>()
 const map = shallowRef<GoogleMap>()
 const markerIds = shallowRef<string[]>([])
@@ -39,19 +45,32 @@ async function createMap() {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
   if (!mapRef.value) return
 
+  // Native map renders behind the WebView — html/body must be transparent
+  // so the map shows through. Restored in onBeforeUnmount.
+  document.documentElement.style.backgroundColor = 'transparent'
+  document.body.style.backgroundColor = 'transparent'
+
   try {
     map.value = await GoogleMap.create({
       id: props.mapId,
       element: mapRef.value,
-      ...(apiKey ? { apiKey } : {}),
+      apiKey: apiKey ?? '',
       config: {
         center: props.center,
         zoom: props.zoom
       }
     })
+    if (!props.interactive) {
+      await map.value.disableTouch()
+    }
+    await map.value.setOnCameraIdleListener((data) => {
+      emit('cameraIdle', { lat: data.latitude, lng: data.longitude })
+    })
+    await map.value.setOnMarkerDragEndListener((data) => {
+      emit('markerDragEnd', { lat: data.latitude, lng: data.longitude })
+    })
     await syncOverlays()
     await moveCameraToData()
-    console.log('[NativeMap] created', { mapId: props.mapId, hasApiKey: Boolean(apiKey) })
   } catch (error) {
     console.error('[NativeMap] create failed', error)
   }
@@ -73,7 +92,8 @@ async function syncOverlays() {
   if (props.markers.length) {
     const markers: Marker[] = props.markers.map((item) => ({
       coordinate: { lat: item.lat, lng: item.lng },
-      title: item.title
+      title: item.title,
+      draggable: item.draggable ?? false
     }))
     markerIds.value = await map.value.addMarkers(markers)
   }
@@ -119,63 +139,165 @@ async function moveCameraToData() {
   await map.value.fitBounds(bounds, 90)
 }
 
-onMounted(createMap)
+// --- Web (Google Maps JS API) ---
+const webMapRef = shallowRef<HTMLElement>()
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const webMap = shallowRef<any>()
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const webMarkers = shallowRef<any[]>([])
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const webPolyline = shallowRef<any>()
+
+let mapsApiPromise: Promise<void> | null = null
+
+function loadMapsApi(): Promise<void> {
+  if (mapsApiPromise) return mapsApiPromise
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if ((window as any).google?.maps) {
+    mapsApiPromise = Promise.resolve()
+    return mapsApiPromise
+  }
+  mapsApiPromise = new Promise<void>((resolve, reject) => {
+    const script = document.createElement('script')
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`
+    script.async = true
+    script.defer = true
+    script.onload = () => resolve()
+    script.onerror = () => reject(new Error('Failed to load Google Maps API'))
+    document.head.appendChild(script)
+  })
+  return mapsApiPromise
+}
+
+async function createWebMap() {
+  if (isNative.value) return
+  if (!webMapRef.value) return
+
+  try {
+    await loadMapsApi()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const g = (window as any).google.maps
+    webMap.value = new g.Map(webMapRef.value, {
+      center: props.center,
+      zoom: props.zoom,
+      gestureHandling: props.interactive ? 'auto' : 'none',
+      disableDefaultUI: !props.interactive
+    })
+    syncWebOverlays()
+    webMap.value.addListener('idle', () => {
+      const center = webMap.value.getCenter()
+      if (center) emit('cameraIdle', { lat: center.lat(), lng: center.lng() })
+    })
+  } catch (error) {
+    console.error('[NativeMap] web map create failed', error)
+  }
+}
+
+function syncWebOverlays() {
+  if (!webMap.value) return
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const g = (window as any).google.maps
+
+  webMarkers.value.forEach((m) => m.setMap(null))
+  webMarkers.value = props.markers.map((item) => {
+    const marker = new g.Marker({
+      position: { lat: item.lat, lng: item.lng },
+      title: item.title,
+      draggable: item.draggable ?? false,
+      map: webMap.value
+    })
+    if (item.draggable) {
+      marker.addListener('dragend', () => {
+        const pos = marker.getPosition()
+        if (pos) emit('markerDragEnd', { lat: pos.lat(), lng: pos.lng() })
+      })
+    }
+    return marker
+  })
+
+  if (webPolyline.value) {
+    webPolyline.value.setMap(null)
+    webPolyline.value = null
+  }
+
+  if (props.path.length > 1) {
+    webPolyline.value = new g.Polyline({
+      path: props.path,
+      strokeColor: '#21c7c7',
+      strokeOpacity: 1,
+      strokeWeight: 6,
+      map: webMap.value
+    })
+  }
+}
+
+function updateWebCamera() {
+  if (!webMap.value) return
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const g = (window as any).google.maps
+
+  const points = [...props.markers.map((m) => ({ lat: m.lat, lng: m.lng })), ...props.path]
+  if (points.length < 2) {
+    webMap.value.setCenter(props.center)
+    webMap.value.setZoom(props.zoom)
+    return
+  }
+
+  const bounds = new g.LatLngBounds()
+  points.forEach((p) => bounds.extend(p))
+  webMap.value.fitBounds(bounds)
+}
+
+// --- Lifecycle ---
+onMounted(async () => {
+  await nextTick()
+  if (isNative.value) {
+    createMap()
+  } else {
+    createWebMap()
+  }
+})
 
 watch(
-  () => [props.center.lat, props.center.lng, props.zoom, isNative.value, props.path, props.markers],
+  () => [props.center.lat, props.center.lng, props.zoom, props.path, props.markers, props.interactive],
   async () => {
-    if (!map.value) return
-    await syncOverlays()
-    await moveCameraToData()
+    if (isNative.value) {
+      if (!map.value) return
+      if (props.interactive) {
+        await map.value.enableTouch()
+      } else {
+        await map.value.disableTouch()
+      }
+      await syncOverlays()
+      await moveCameraToData()
+    } else {
+      syncWebOverlays()
+      updateWebCamera()
+    }
   }
 )
 
-onBeforeUnmount(async () => {
+onBeforeUnmount(() => {
+  // Restore synchronously — async onBeforeUnmount would let the next page's
+  // onMounted run before this completes, creating a race that leaves body opaque.
+  document.documentElement.style.backgroundColor = ''
+  document.body.style.backgroundColor = ''
   if (map.value) {
-    await map.value.destroy()
+    map.value.destroy().catch(() => {})
   }
+  webMarkers.value.forEach((m) => m.setMap(null))
+  if (webPolyline.value) webPolyline.value.setMap(null)
 })
 </script>
 
 <style scoped>
 .native-map {
-  display: inline-block;
+  display: block;
   width: 100%;
   height: 100%;
   min-height: 280px;
   border-radius: var(--radius-card);
   overflow: hidden;
-}
-
-.map-frame {
-  flex: 1;
-  background: radial-gradient(circle at 30% 20%, #eaf5f0 0%, #d7ebe3 40%, #c8e1d6 100%);
-  border-radius: var(--radius-card);
-  min-height: 280px;
-  position: relative;
-  overflow: hidden;
-}
-
-.map-pin {
-  position: absolute;
-  left: 50%;
-  top: 45%;
-  transform: translate(-50%, -50%);
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  box-shadow: 0 0 0 6px rgba(31, 122, 92, 0.2);
-}
-
-.map-label {
-  position: absolute;
-  top: var(--space-4);
-  left: var(--space-4);
-  background: rgba(255, 255, 255, 0.9);
-  padding: 6px 10px;
-  border-radius: 10px;
-  font-size: var(--text-secondary);
-  color: var(--color-text-secondary);
+  background: transparent;
 }
 </style>
