@@ -11,8 +11,10 @@ router.get('/:id', async (req, res) => {
   res.json(ride)
 })
 
+const VALID_STATUSES = ['FINDING_DRIVER', 'ASSIGNED', 'ARRIVING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'] as const
+
 router.post('/:id/status', async (req, res) => {
-  const parsed = z.object({ status: z.string() }).safeParse(req.body)
+  const parsed = z.object({ status: z.enum(VALID_STATUSES) }).safeParse(req.body)
   if (!parsed.success) {
     return res.status(422).json({ error: parsed.error.flatten() })
   }
@@ -20,7 +22,7 @@ router.post('/:id/status', async (req, res) => {
   const ride = await prisma.ride.update({
     where: { id: req.params.id },
     data: {
-      status: parsed.data.status as any,
+      status: parsed.data.status,
       events: { create: [{ type: parsed.data.status }] }
     }
   })

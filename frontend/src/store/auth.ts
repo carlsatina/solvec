@@ -20,9 +20,12 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     try {
       const res = await api.verifyOtp({ phone, code })
+      // Fetch profile before committing the token so we never end up
+      // with a token but a null user if /users/me fails.
+      const me = await api.meWithToken(res.token)
       token.value = res.token
       localStorage.setItem('auth_token', res.token)
-      user.value = await api.me()
+      user.value = me
     } finally {
       loading.value = false
     }

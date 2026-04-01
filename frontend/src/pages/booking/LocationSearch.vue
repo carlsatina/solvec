@@ -1,63 +1,72 @@
 <template>
-  <div class="app-screen search-screen">
+  <div class="search-screen">
     <header class="search-header">
       <button class="back-button" type="button" @click="goBack" aria-label="Back">
         <span class="back-icon" aria-hidden="true"></span>
       </button>
-      <button class="location-pill" type="button" :disabled="locating" @click="useCurrentLocation">
-        <span class="location-dot" aria-hidden="true"></span>
-        <span>{{ locating ? 'Getting current location...' : 'Use my current location' }}</span>
-      </button>
+      <span class="header-title">Set pickup</span>
     </header>
 
-    <div class="destination-bar">
+    <!-- Current location pill (tap to switch to search input) -->
+    <div v-if="!isEditing" class="location-pill" @click="startEditing">
+      <span class="pulse-dot" :class="{ locating }" aria-hidden="true"></span>
+      <span class="pill-text">
+        {{ locating ? 'Getting your location…' : (currentLocation?.address || 'Tap to search pickup') }}
+      </span>
+      <span class="pill-chevron" aria-hidden="true">›</span>
+    </div>
+
+    <!-- Search input (shown after tapping the pill) -->
+    <div v-else class="destination-bar">
       <span class="pin-icon" aria-hidden="true"></span>
-      <input v-model="query" class="destination-input" placeholder="Enter pickup" />
-      <button class="add-button" type="button" aria-label="Add">
-        <span class="add-icon">+</span>
+      <input
+        ref="inputRef"
+        v-model="query"
+        class="destination-input"
+        placeholder="Search pickup location"
+        autocomplete="off"
+      />
+      <button class="clear-button" type="button" aria-label="Cancel search" @click="cancelEditing">
+        <span class="clear-icon" aria-hidden="true"></span>
       </button>
     </div>
 
-    <div class="chip-row">
-      <button class="chip active" type="button">Suggested</button>
-      <button class="chip" type="button">Saved</button>
-    </div>
+    <!-- Results list (visible while editing) -->
+    <template v-if="isEditing">
+      <div v-if="loading" class="status-row">Searching…</div>
+      <ul v-else-if="results.length" class="place-list">
+        <li
+          v-for="place in results"
+          :key="place.placeId"
+          class="place-item"
+          @click="pick(place.placeId)"
+        >
+          <div class="place-icon" aria-hidden="true"></div>
+          <div class="place-body">
+            <div class="place-title">{{ toTitle(place.description) }}</div>
+            <div class="place-subtitle">{{ toSubtitle(place.description) }}</div>
+          </div>
+        </li>
+      </ul>
+      <div v-else-if="query.length >= 3" class="status-row">No results found</div>
+      <div v-else class="status-row">Type at least 3 characters to search</div>
+    </template>
 
-    <div v-if="loading" class="card loading-card">
-      <div class="section-title">Searching...</div>
-      <p class="text-secondary">Fetching nearby places</p>
-    </div>
-
-    <ul v-else class="place-list">
-      <li
-        v-for="place in results"
-        :key="place.placeId"
-        class="place-item"
-        @click="pick(place.placeId)"
+    <!-- Confirm current location (visible while not editing) -->
+    <template v-else>
+      <button
+        class="button button-primary confirm-button"
+        :disabled="!currentLocation || locating"
+        @click="confirmCurrentLocation"
       >
-        <div class="place-icon" aria-hidden="true"></div>
-        <div class="place-body">
-          <div class="place-title">{{ toTitle(place.description) }}</div>
-          <div class="place-subtitle">{{ toSubtitle(place.description) }}</div>
-        </div>
-        <div class="place-actions" aria-hidden="true">
-          <span class="bookmark"></span>
-          <span class="more"></span>
-        </div>
-      </li>
-      <li v-if="!results.length" class="empty-state">
-        <div class="text-secondary">Type at least 3 characters</div>
-      </li>
-    </ul>
-
-    <button class="button button-primary" :disabled="!selected" @click="useLocation">
-      Use this pickup
-    </button>
+        {{ locating ? 'Getting location…' : 'Use current location' }}
+      </button>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { nextTick, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBookingStore } from '../../store/booking'
 import { usePlacesSearch } from '../../composables/usePlacesSearch'
@@ -66,8 +75,11 @@ import { getCurrentLocationPoint } from '../../composables/useCurrentLocation'
 const router = useRouter()
 const booking = useBookingStore()
 const { query, results, loading, selectPlace } = usePlacesSearch()
-const selected = ref<{ address: string; lat: number; lng: number } | null>(null)
+
+const currentLocation = ref<{ address: string; lat: number; lng: number } | null>(null)
 const locating = ref(false)
+const isEditing = ref(false)
+const inputRef = ref<HTMLInputElement | null>(null)
 
 function goBack() {
   router.back()
@@ -79,41 +91,49 @@ function toTitle(description: string) {
 
 function toSubtitle(description: string) {
   const parts = description.split(',')
-  const subtitle = parts.slice(1).join(',').trim()
-  return subtitle || description
+  return parts.slice(1).join(',').trim() || description
+}
+
+async function startEditing() {
+  isEditing.value = true
+  await nextTick()
+  inputRef.value?.focus()
+}
+
+function cancelEditing() {
+  isEditing.value = false
+  query.value = ''
 }
 
 async function pick(placeId: string) {
   const details = await selectPlace(placeId)
   if (!details) return
-  selected.value = { address: details.address, lat: details.lat, lng: details.lng }
-  query.value = details.address
-  booking.setPickup(selected.value)
+  const location = { address: details.address, lat: details.lat, lng: details.lng }
+  booking.setPickup(location)
   router.push('/booking/confirm-location/pickup')
 }
 
-function useLocation() {
-  if (!selected.value) return
-  booking.setPickup(selected.value)
+function confirmCurrentLocation() {
+  if (!currentLocation.value) return
+  booking.setPickup(currentLocation.value)
   router.push('/booking/confirm-location/pickup')
 }
 
-async function useCurrentLocation() {
-  if (locating.value) return
+onMounted(async () => {
   locating.value = true
   try {
-    const current = await getCurrentLocationPoint()
-    selected.value = current
-    query.value = current.address
-    booking.setPickup(current)
-    router.push('/booking/confirm-location/pickup')
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unable to fetch current location'
-    window.alert(message)
+    const location = await getCurrentLocationPoint()
+    currentLocation.value = location
+    booking.setPickup(location)
+  } catch {
+    // Permission denied or GPS unavailable — let user search manually
+    isEditing.value = true
+    await nextTick()
+    inputRef.value?.focus()
   } finally {
     locating.value = false
   }
-}
+})
 </script>
 
 <style scoped>
@@ -121,6 +141,9 @@ async function useCurrentLocation() {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  padding: var(--space-5);
+  min-height: 100vh;
+  background: #fff;
 }
 
 .search-header {
@@ -137,6 +160,7 @@ async function useCurrentLocation() {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .back-icon {
@@ -147,43 +171,82 @@ async function useCurrentLocation() {
   transform: rotate(45deg);
 }
 
+.header-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1b1f1e;
+}
+
+/* Current location pill */
 .location-pill {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: var(--space-2);
-  font-weight: 600;
-  border: none;
-  background: transparent;
-  padding: 0;
+  gap: var(--space-3);
+  padding: 14px 16px;
+  background: #f1f8f8;
+  border: 2px solid #37c6c5;
+  border-radius: 16px;
+  cursor: pointer;
 }
 
-.location-pill:disabled {
-  opacity: 0.6;
-}
-
-.location-dot {
-  width: 18px;
-  height: 18px;
+.pulse-dot {
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  border: 4px solid #1b1f1e;
-  background: #fff;
+  background: #37c6c5;
+  flex-shrink: 0;
+  transition: background 200ms;
 }
 
+.pulse-dot.locating {
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+.pill-text {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1b1f1e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pill-chevron {
+  font-size: 22px;
+  color: #37c6c5;
+  line-height: 1;
+}
+
+/* Search input bar */
 .destination-bar {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
+  padding: 14px 16px;
   border-radius: 16px;
   background: #f1f2f3;
+  border: 2px solid transparent;
+  transition: border-color 200ms;
+}
+
+.destination-bar:focus-within {
+  border-color: #37c6c5;
+  background: #fff;
 }
 
 .pin-icon {
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   border-radius: 50% 50% 50% 0;
   transform: rotate(-45deg);
   background: #f4a601;
+  flex-shrink: 0;
 }
 
 .destination-input {
@@ -197,55 +260,60 @@ async function useCurrentLocation() {
 
 .destination-input:focus { outline: none; }
 
-.add-button {
+.clear-button {
   width: 28px;
   height: 28px;
-  border-radius: 8px;
+  border-radius: 50%;
   border: none;
-  background: #37c6c5;
-  color: #fff;
-  font-weight: 700;
+  background: #d1d5db;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-.add-icon { font-size: 18px; line-height: 1; }
-
-.chip-row {
-  display: flex;
-  gap: var(--space-3);
+.clear-icon {
+  width: 10px;
+  height: 10px;
+  position: relative;
+  display: block;
 }
 
-.chip {
-  padding: 8px 16px;
-  border-radius: 999px;
-  border: none;
-  background: #f1f2f3;
-  font-weight: 600;
-  color: #1b1f1e;
+.clear-icon::before,
+.clear-icon::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 2px;
+  background: #fff;
+  border-radius: 1px;
+  top: 4px;
+  left: 0;
 }
 
-.chip.active {
-  background: #2f2f2f;
-  color: #fff;
-}
+.clear-icon::before { transform: rotate(45deg); }
+.clear-icon::after { transform: rotate(-45deg); }
 
+/* Results */
 .place-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
 }
 
 .place-item {
   display: grid;
-  grid-template-columns: 40px 1fr auto;
+  grid-template-columns: 40px 1fr;
   gap: var(--space-3);
   align-items: center;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid #f1f2f3;
+  cursor: pointer;
 }
+
+.place-item:active { background: #f9fafb; }
 
 .place-icon {
   width: 40px;
@@ -253,6 +321,7 @@ async function useCurrentLocation() {
   border-radius: 50%;
   background: #f1f2f3;
   position: relative;
+  flex-shrink: 0;
 }
 
 .place-icon::after {
@@ -262,67 +331,30 @@ async function useCurrentLocation() {
   left: 14px;
   width: 12px;
   height: 12px;
-  border: 2px solid #1b1f1e;
+  border: 2px solid #6b7280;
   border-radius: 50% 50% 50% 0;
   transform: rotate(-45deg);
 }
 
 .place-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
+  color: #1b1f1e;
 }
 
 .place-subtitle {
   font-size: 13px;
   color: var(--color-text-secondary);
+  margin-top: 2px;
 }
 
-.place-actions {
-  display: flex;
-  gap: var(--space-3);
-  color: #737373;
+.status-row {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  padding: var(--space-3) 0;
 }
 
-.bookmark,
-.more {
-  width: 18px;
-  height: 18px;
-  display: inline-block;
-  border: 2px solid #737373;
-  border-radius: 4px;
-}
-
-.bookmark { border-radius: 3px 3px 0 0; }
-
-.more {
-  border: none;
-  position: relative;
-}
-
-.more::before,
-.more::after {
-  content: '';
-  position: absolute;
-  left: 8px;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #737373;
-}
-
-.more::before { top: 3px; }
-
-.more::after { top: 11px; }
-
-.empty-state {
-  padding: var(--space-4);
-  background: #f1f2f3;
-  border-radius: 12px;
-}
-
-.loading-card {
-  background: #f1f2f3;
-  border: none;
-  box-shadow: none;
+.confirm-button {
+  margin-top: auto;
 }
 </style>

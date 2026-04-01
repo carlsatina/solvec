@@ -26,6 +26,7 @@ export const api = {
   verifyOtp: (payload: AuthOtpVerifyRequest) => request<AuthOtpVerifyResponse>('/auth/otp/verify', { method: 'POST', body: payload }),
   register: (payload: RegisterRequest) => request<RegisterResponse>('/auth/register', { method: 'POST', body: payload }),
   me: () => request<UserProfile>('/users/me'),
+  meWithToken: (token: string) => request<UserProfile>('/users/me', { headers: { Authorization: `Bearer ${token}` } }),
   estimateFare: (payload: FareEstimateRequest) => request<FareEstimateResponse>('/bookings/estimate', { method: 'POST', body: payload }),
   createBooking: (payload: CreateBookingRequest) => request<CreateBookingResponse>('/bookings', { method: 'POST', body: payload }),
   cancelBooking: (rideId: string) => request<{ ok: boolean }>(`/bookings/${rideId}/cancel`, { method: 'POST' }),

@@ -8,10 +8,15 @@
         :center="mapCenter"
         :zoom="17"
         :map-id="mapId"
-        :markers="mapMarkers"
+        :markers="noMarkers"
         :interactive="true"
-        @marker-drag-end="onMarkerDragEnd"
+        @camera-idle="onCameraIdle"
       />
+      <!-- CSS pin fixed at map center — stays put while the map pans beneath it -->
+      <div class="map-pin-wrap" aria-hidden="true">
+        <div class="map-pin-head" :class="{ geocoding }"></div>
+        <div class="map-pin-shadow"></div>
+      </div>
     </div>
 
     <section class="sheet">
@@ -70,23 +75,30 @@ const mapCenter = ref(
 )
 const mapId = computed(() => `solvec-map-${type.value}`)
 
-// Plain non-reactive array — keeps the marker from triggering the NativeMap
-// watcher (which would re-pan the camera) after a drag-end update.
-const mapMarkers = [{ lat: mapCenter.value.lat, lng: mapCenter.value.lng, draggable: true }]
+// No native markers — we use a CSS pin fixed at the screen center instead.
+// Stable reference prevents the NativeMap watcher from re-panning the camera.
+const noMarkers: Array<{ lat: number; lng: number }> = []
 
-// Resolved address is updated by reverse geocode after each marker drag.
 const resolvedAddress = ref(current.value?.address ?? '')
 const geocoding = ref(false)
 
 const confirmLabel = computed(() => (type.value === 'pickup' ? 'Confirm Pickup' : 'Confirm drop-off'))
 const chipLabel = computed(() =>
-  resolvedAddress.value ? `Near ${resolvedAddress.value.split(',')[0]}` : 'Select location'
+  geocoding.value
+    ? 'Finding address…'
+    : resolvedAddress.value
+      ? `Near ${resolvedAddress.value.split(',')[0]}`
+      : 'Move map to select location'
 )
-const titleText = computed(() => chipLabel.value)
-const subtitleText = computed(() => resolvedAddress.value || 'Choose a nearby landmark')
+const titleText = computed(() =>
+  geocoding.value ? '…' : resolvedAddress.value.split(',')[0] || 'Select location'
+)
+const subtitleText = computed(() =>
+  geocoding.value ? '' : resolvedAddress.value || 'Choose a nearby landmark'
+)
 
 const nearbyOptions = computed(() => {
-  if (!resolvedAddress.value) return []
+  if (!resolvedAddress.value || geocoding.value) return []
   const parts = resolvedAddress.value.split(',')
   const area = parts.slice(1).join(',').trim() || resolvedAddress.value
   return [
@@ -96,23 +108,32 @@ const nearbyOptions = computed(() => {
   ]
 })
 
-async function onMarkerDragEnd(coords: { lat: number; lng: number }) {
-  geocoding.value = true
-  try {
-    const result = await api.reverseGeocode(coords.lat, coords.lng)
-    resolvedAddress.value = result.address
+// Track latest camera center so confirmLocation uses up-to-date coords
+// even if the user taps confirm right after panning (before geocode finishes).
+const latestCoords = ref({ lat: mapCenter.value.lat, lng: mapCenter.value.lng })
+let geocodeTimer: ReturnType<typeof setTimeout> | null = null
 
-    const location = { address: result.address, lat: coords.lat, lng: coords.lng }
-    if (type.value === 'pickup') {
-      booking.setPickup(location)
-    } else {
-      booking.setDropoff(location)
+function onCameraIdle(coords: { lat: number; lng: number }) {
+  latestCoords.value = coords
+  if (geocodeTimer) clearTimeout(geocodeTimer)
+  // Debounce to avoid a geocode call on every intermediate camera position
+  geocodeTimer = setTimeout(async () => {
+    geocoding.value = true
+    try {
+      const result = await api.reverseGeocode(coords.lat, coords.lng)
+      resolvedAddress.value = result.address
+      const location = { address: result.address, lat: coords.lat, lng: coords.lng }
+      if (type.value === 'pickup') {
+        booking.setPickup(location)
+      } else {
+        booking.setDropoff(location)
+      }
+    } catch {
+      // keep existing address on error
+    } finally {
+      geocoding.value = false
     }
-  } catch {
-    // keep existing address on error
-  } finally {
-    geocoding.value = false
-  }
+  }, 600)
 }
 
 function goBack() {
@@ -120,6 +141,16 @@ function goBack() {
 }
 
 function confirmLocation() {
+  // If geocode hasn't settled yet, commit the current camera center with the
+  // last known address so the user isn't blocked.
+  if (geocodeTimer) {
+    clearTimeout(geocodeTimer)
+    geocodeTimer = null
+    const location = { address: resolvedAddress.value, lat: latestCoords.value.lat, lng: latestCoords.value.lng }
+    if (type.value === 'pickup') booking.setPickup(location)
+    else booking.setDropoff(location)
+  }
+
   if (type.value === 'pickup') {
     if (booking.dropoff) {
       router.push('/booking/ride-options')
@@ -173,6 +204,53 @@ function confirmLocation() {
 .map-container :deep(.native-map) {
   border-radius: 0;
   height: 100%;
+}
+
+/* Center pin — sits over the transparent WebView, always at map center */
+.map-pin-wrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* Translate so the tip of the rotated-square pin points to exact center */
+  transform: translate(-50%, -100%) translateY(6px);
+  pointer-events: none;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.map-pin-head {
+  width: 36px;
+  height: 36px;
+  border-radius: 50% 50% 50% 0;
+  background: #37c6c5;
+  transform: rotate(-45deg);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+  position: relative;
+  transition: background 0.2s;
+}
+
+/* Inner white circle (counter-rotate to undo the parent -45deg) */
+.map-pin-head::after {
+  content: '';
+  position: absolute;
+  inset: 9px;
+  border-radius: 50%;
+  background: #fff;
+  transform: rotate(45deg);
+}
+
+.map-pin-head.geocoding {
+  background: #94a3b8;
+}
+
+.map-pin-shadow {
+  width: 12px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.15);
 }
 
 

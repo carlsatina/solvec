@@ -71,8 +71,8 @@ async function createMap() {
     })
     await syncOverlays()
     await moveCameraToData()
-  } catch (error) {
-    console.error('[NativeMap] create failed', error)
+  } catch {
+    // Map creation failed — component renders nothing, underlying error surfaced by Capacitor
   }
 }
 
@@ -188,8 +188,8 @@ async function createWebMap() {
       const center = webMap.value.getCenter()
       if (center) emit('cameraIdle', { lat: center.lat(), lng: center.lng() })
     })
-  } catch (error) {
-    console.error('[NativeMap] web map create failed', error)
+  } catch {
+    // Web map creation failed — likely API key issue or network error
   }
 }
 

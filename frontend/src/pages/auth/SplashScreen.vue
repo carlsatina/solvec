@@ -5,6 +5,39 @@
   </div>
 </template>
 
+<script setup lang="ts">
+import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../../store/auth'
+import { api } from '../../services/api'
+
+const router = useRouter()
+const auth = useAuthStore()
+
+onMounted(async () => {
+  // Show the splash for at least 1.5 s so it doesn't flash
+  const minDelay = new Promise((resolve) => setTimeout(resolve, 1500))
+
+  const token = localStorage.getItem('auth_token')
+  let destination = '/auth/welcome'
+
+  if (token) {
+    try {
+      const me = await api.me()
+      auth.$patch({ token, user: me })
+      destination = '/home'
+    } catch {
+      // Token is expired or invalid — clear it and send to welcome
+      localStorage.removeItem('auth_token')
+      auth.$patch({ token: null, user: null })
+    }
+  }
+
+  await minDelay
+  router.replace(destination)
+})
+</script>
+
 <style scoped>
 .splash {
   align-items: center;

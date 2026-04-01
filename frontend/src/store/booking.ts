@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { api } from '../services/api'
 import { getSocket } from '../services/socket'
+import { useAuthStore } from './auth'
 
 export type RideType = 'ECO' | 'COMFORT' | 'XL'
 export type PaymentMethod = 'CASH' | 'EWALLET' | 'CARD'
@@ -12,6 +13,8 @@ type LocationPoint = {
   lng: number
 }
 
+type RideStatusPayload = { rideId: string; status: string }
+
 export const useBookingStore = defineStore('booking', () => {
   const pickup = ref<LocationPoint | null>(null)
   const dropoff = ref<LocationPoint | null>(null)
@@ -21,6 +24,10 @@ export const useBookingStore = defineStore('booking', () => {
   const rideId = ref<string | null>(null)
   const rideStatus = ref<string | null>(null)
   const loading = ref(false)
+  const error = ref<string | null>(null)
+
+  // Keep a reference to the active socket handler so we can remove only it
+  let rideStatusHandler: ((payload: RideStatusPayload) => void) | null = null
 
   function setPickup(data: LocationPoint) {
     pickup.value = data
@@ -49,8 +56,6 @@ export const useBookingStore = defineStore('booking', () => {
         dropoffLng: dropoff.value.lng
       })
       fareEstimate.value = { total: res.total, currency: res.currency, distanceKm: res.distanceKm, durationMin: res.durationMin }
-    } catch (err) {
-      console.error('[booking] estimateFare failed', err)
     } finally {
       loading.value = false
     }
@@ -58,9 +63,14 @@ export const useBookingStore = defineStore('booking', () => {
 
   async function createBooking() {
     if (!pickup.value || !dropoff.value) return
+    const auth = useAuthStore()
+    if (!auth.user) throw new Error('Not authenticated')
+
     loading.value = true
+    error.value = null
     try {
       const res = await api.createBooking({
+        riderId: auth.user.id,
         pickupAddress: pickup.value.address,
         pickupLat: pickup.value.lat,
         pickupLng: pickup.value.lng,
@@ -72,6 +82,9 @@ export const useBookingStore = defineStore('booking', () => {
       rideId.value = res.rideId
       rideStatus.value = res.status
       subscribeToRideUpdates(res.rideId)
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Booking failed'
+      throw err
     } finally {
       loading.value = false
     }
@@ -80,9 +93,14 @@ export const useBookingStore = defineStore('booking', () => {
   async function cancelBooking() {
     if (!rideId.value) return
     loading.value = true
+    error.value = null
     try {
       await api.cancelBooking(rideId.value)
       rideStatus.value = 'CANCELLED'
+      unsubscribeFromRideUpdates()
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Cancel failed'
+      throw err
     } finally {
       loading.value = false
     }
@@ -91,11 +109,22 @@ export const useBookingStore = defineStore('booking', () => {
   function subscribeToRideUpdates(id: string) {
     const socket = getSocket()
     socket.emit('join', { rideId: id })
-    socket.off('ride:status')
-    socket.on('ride:status', (payload: { rideId: string; status: string }) => {
+
+    // Remove only our previously registered handler before adding a new one
+    unsubscribeFromRideUpdates()
+
+    rideStatusHandler = (payload: RideStatusPayload) => {
       if (payload.rideId !== id) return
       rideStatus.value = payload.status
-    })
+    }
+    socket.on('ride:status', rideStatusHandler)
+  }
+
+  function unsubscribeFromRideUpdates() {
+    if (!rideStatusHandler) return
+    const socket = getSocket()
+    socket.off('ride:status', rideStatusHandler)
+    rideStatusHandler = null
   }
 
   return {
@@ -107,12 +136,14 @@ export const useBookingStore = defineStore('booking', () => {
     rideId,
     rideStatus,
     loading,
+    error,
     setPickup,
     setDropoff,
     setRideType,
     setPaymentMethod,
     estimateFare,
     createBooking,
-    cancelBooking
+    cancelBooking,
+    unsubscribeFromRideUpdates
   }
 })

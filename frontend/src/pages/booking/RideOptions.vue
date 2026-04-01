@@ -65,6 +65,7 @@ import { useRouter } from 'vue-router'
 import NativeMap from '../../components/NativeMap.vue'
 import { useBookingStore } from '../../store/booking'
 import { api } from '../../services/api'
+import { decodePolyline } from '../../utils/polyline'
 
 const router = useRouter()
 const booking = useBookingStore()
@@ -109,40 +110,6 @@ const fareRange = computed(() => {
 const pickupLabel = computed(() => pickupAddress.value.split(',')[0] || pickupAddress.value)
 const dropoffLabel = computed(() => dropoffAddress.value.split(',')[0] || dropoffAddress.value)
 
-function decodePolyline(encoded: string) {
-  const points: Array<{ lat: number; lng: number }> = []
-  let index = 0
-  let lat = 0
-  let lng = 0
-
-  while (index < encoded.length) {
-    let result = 0
-    let shift = 0
-    let byte = 0
-
-    do {
-      byte = encoded.charCodeAt(index++) - 63
-      result |= (byte & 0x1f) << shift
-      shift += 5
-    } while (byte >= 0x20)
-
-    lat += (result & 1) !== 0 ? ~(result >> 1) : result >> 1
-    result = 0
-    shift = 0
-
-    do {
-      byte = encoded.charCodeAt(index++) - 63
-      result |= (byte & 0x1f) << shift
-      shift += 5
-    } while (byte >= 0x20)
-
-    lng += (result & 1) !== 0 ? ~(result >> 1) : result >> 1
-    points.push({ lat: lat / 1e5, lng: lng / 1e5 })
-  }
-
-  return points
-}
-
 async function loadRoute() {
   if (!booking.pickup || !booking.dropoff) return
 
@@ -159,7 +126,6 @@ async function loadRoute() {
     routeDurationMin.value = Math.max(1, Math.round(route.durationSeconds / 60))
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
-    console.error('[RideOptions] loadRoute failed', msg)
     routeError.value = msg
     routePath.value = []
   }
@@ -171,9 +137,12 @@ onMounted(async () => {
     return
   }
 
-  const [fareResult] = await Promise.allSettled([booking.estimateFare(), loadRoute()])
+  const [fareResult, routeResult] = await Promise.allSettled([booking.estimateFare(), loadRoute()])
   if (fareResult.status === 'rejected') {
     fareError.value = fareResult.reason instanceof Error ? fareResult.reason.message : String(fareResult.reason)
+  }
+  if (routeResult.status === 'rejected') {
+    routeError.value = routeResult.reason instanceof Error ? routeResult.reason.message : String(routeResult.reason)
   }
 })
 

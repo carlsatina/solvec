@@ -27,6 +27,7 @@ export type FareEstimateResponse = {
 }
 
 export type CreateBookingRequest = {
+  riderId: string
   pickupAddress: string
   pickupLat: number
   pickupLng: number

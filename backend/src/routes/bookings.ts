@@ -38,7 +38,7 @@ router.post('/estimate', (req, res) => {
 })
 
 const createBookingSchema = z.object({
-  riderId: z.string().optional(),
+  riderId: z.string(),
   pickupAddress: z.string(),
   pickupLat: z.number(),
   pickupLng: z.number(),
@@ -83,28 +83,26 @@ router.post('/', async (req, res) => {
     return res.status(422).json({ error: parsed.error.flatten() })
   }
 
-  const data = parsed.data
-  const riderId = data.riderId
-    ? data.riderId
-    : (await prisma.user.findFirst({ where: { role: 'PASSENGER' } }))?.id
+  const { riderId, pickupAddress, pickupLat, pickupLng, dropoffAddress, dropoffLat, dropoffLng, paymentMethod } = parsed.data
 
-  if (!riderId) {
-    return res.status(404).json({ error: 'No rider found' })
-  }
+  // Calculate fare using the same logic as /estimate
+  const distanceKm = haversine(pickupLat, pickupLng, dropoffLat, dropoffLng)
+  const durationMin = Math.max(4, (distanceKm / 22) * 60)
+  const fareAmount = 55 + Math.round(distanceKm * 15) + Math.round(durationMin * 2.8)
 
   const ride = await prisma.ride.create({
     data: {
       riderId,
       status: 'FINDING_DRIVER',
-      pickupAddress: data.pickupAddress,
-      pickupLat: data.pickupLat,
-      pickupLng: data.pickupLng,
-      dropoffAddress: data.dropoffAddress,
-      dropoffLat: data.dropoffLat,
-      dropoffLng: data.dropoffLng,
-      fareAmount: 286,
+      pickupAddress,
+      pickupLat,
+      pickupLng,
+      dropoffAddress,
+      dropoffLat,
+      dropoffLng,
+      fareAmount,
       currency: 'PHP',
-      paymentMethod: data.paymentMethod,
+      paymentMethod,
       events: {
         create: [{ type: 'FINDING_DRIVER' }]
       }
@@ -115,25 +113,29 @@ router.post('/', async (req, res) => {
   io.to(`ride:${ride.id}`).emit('ride:status', { rideId: ride.id, status: ride.status })
   io.to(`user:${riderId}`).emit('ride:status', { rideId: ride.id, status: ride.status })
 
-  const driverId = await findNearestDriver(data.pickupLat, data.pickupLng)
-  if (driverId) {
-    const assigned = await prisma.ride.update({
-      where: { id: ride.id },
-      data: {
-        driverId,
-        status: 'ASSIGNED',
-        events: { create: [{ type: 'ASSIGNED' }] }
-      }
-    })
+  try {
+    const driverId = await findNearestDriver(pickupLat, pickupLng)
+    if (driverId) {
+      const assigned = await prisma.ride.update({
+        where: { id: ride.id },
+        data: {
+          driverId,
+          status: 'ASSIGNED',
+          events: { create: [{ type: 'ASSIGNED' }] }
+        }
+      })
 
-    await prisma.driverLocation.update({
-      where: { driverId },
-      data: { isAvailable: false }
-    })
+      await prisma.driverLocation.update({
+        where: { driverId },
+        data: { isAvailable: false }
+      })
 
-    io.to(`ride:${ride.id}`).emit('ride:status', { rideId: ride.id, status: assigned.status, driverId })
-    io.to(`user:${riderId}`).emit('ride:status', { rideId: ride.id, status: assigned.status, driverId })
-    io.to(`user:${driverId}`).emit('ride:status', { rideId: ride.id, status: assigned.status, riderId })
+      io.to(`ride:${ride.id}`).emit('ride:status', { rideId: ride.id, status: assigned.status, driverId })
+      io.to(`user:${riderId}`).emit('ride:status', { rideId: ride.id, status: assigned.status, driverId })
+      io.to(`user:${driverId}`).emit('ride:status', { rideId: ride.id, status: assigned.status, riderId })
+    }
+  } catch {
+    // Driver matching failed — ride stays in FINDING_DRIVER, can be retried
   }
 
   res.json({ ok: true, rideId: ride.id, status: ride.status })
@@ -141,6 +143,13 @@ router.post('/', async (req, res) => {
 
 router.post('/:id/cancel', async (req, res) => {
   const id = req.params.id
+
+  const existing = await prisma.ride.findUnique({ where: { id } })
+  if (!existing) return res.status(404).json({ error: 'Ride not found' })
+  if (['CANCELLED', 'COMPLETED'].includes(existing.status)) {
+    return res.status(409).json({ error: `Ride is already ${existing.status.toLowerCase()}` })
+  }
+
   const ride = await prisma.ride.update({
     where: { id },
     data: {

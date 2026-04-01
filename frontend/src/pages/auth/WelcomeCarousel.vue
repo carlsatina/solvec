@@ -10,6 +10,11 @@
       <div class="section-title">Trusted professional drivers</div>
       <p class="text-secondary">Verified drivers with real-time trip safety features.</p>
     </div>
-    <button class="button button-primary">Get started</button>
+    <button class="button button-primary" @click="router.push('/auth/login')">Get started</button>
   </div>
 </template>
+
+<script setup lang="ts">
+import { useRouter } from 'vue-router'
+const router = useRouter()
+</script>

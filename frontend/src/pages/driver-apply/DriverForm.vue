@@ -24,10 +24,10 @@ const steps = ['Info', 'Docs', 'Schedule', 'Review']
 const router = useRouter()
 const driverApp = useDriverApplicationStore()
 
-const fullName = ref('Juan Dela Cruz')
-const phone = ref('+639171234567')
-const email = ref('juan@example.com')
-const address = ref('Taguig City, Metro Manila')
+const fullName = ref('')
+const phone = ref('')
+const email = ref('')
+const address = ref('')
 
 async function next() {
   await driverApp.update({

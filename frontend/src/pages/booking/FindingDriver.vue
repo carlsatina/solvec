@@ -101,6 +101,7 @@ import { useRouter } from 'vue-router'
 import NativeMap from '../../components/NativeMap.vue'
 import { useBookingStore } from '../../store/booking'
 import { api } from '../../services/api'
+import { decodePolyline } from '../../utils/polyline'
 
 const router = useRouter()
 const booking = useBookingStore()
@@ -138,7 +139,7 @@ const mapMarkers = computed(() => {
 
 const pickupLabel = computed(() => shortLabel(booking.pickup?.address || 'Pickup'))
 const dropoffLabel = computed(() => shortLabel(booking.dropoff?.address || 'Drop-off'))
-const plateCode = computed(() => `${booking.rideId?.slice(0, 10) || '01KMZ90SW8'}...`)
+const plateCode = computed(() => booking.rideId ? `${booking.rideId.slice(0, 10)}...` : 'PENDING...')
 const bookingTime = computed(() => {
   const now = new Date()
   const hm = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
@@ -270,40 +271,6 @@ function shortLabel(address: string) {
   return address.split(',')[0]?.trim() || address
 }
 
-function decodePolyline(encoded: string) {
-  const points: Array<{ lat: number; lng: number }> = []
-  let index = 0
-  let lat = 0
-  let lng = 0
-
-  while (index < encoded.length) {
-    let result = 0
-    let shift = 0
-    let byte = 0
-
-    do {
-      byte = encoded.charCodeAt(index++) - 63
-      result |= (byte & 0x1f) << shift
-      shift += 5
-    } while (byte >= 0x20)
-
-    lat += (result & 1) !== 0 ? ~(result >> 1) : result >> 1
-    result = 0
-    shift = 0
-
-    do {
-      byte = encoded.charCodeAt(index++) - 63
-      result |= (byte & 0x1f) << shift
-      shift += 5
-    } while (byte >= 0x20)
-
-    lng += (result & 1) !== 0 ? ~(result >> 1) : result >> 1
-    points.push({ lat: lat / 1e5, lng: lng / 1e5 })
-  }
-
-  return points
-}
-
 async function loadRoute() {
   if (!booking.pickup || !booking.dropoff) return
 
@@ -346,7 +313,12 @@ function goBack() {
 }
 
 async function cancelBooking() {
-  await booking.cancelBooking()
+  try {
+    await booking.cancelBooking()
+  } catch {
+    // Cancellation failed — stay on page so the user can try again
+    return
+  }
   router.back()
 }
 
@@ -355,6 +327,7 @@ onBeforeUnmount(() => {
   if (rafId.value != null) {
     window.cancelAnimationFrame(rafId.value)
   }
+  booking.unsubscribeFromRideUpdates()
 })
 </script>
 

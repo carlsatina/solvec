@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { Capacitor } from '@capacitor/core'
 
 const SplashScreen = () => import('../pages/auth/SplashScreen.vue')
 const WelcomeCarousel = () => import('../pages/auth/WelcomeCarousel.vue')
@@ -44,7 +43,7 @@ const DriverStatus = () => import('../pages/driver-apply/DriverStatus.vue')
 const DriverFaq = () => import('../pages/driver-apply/DriverFaq.vue')
 
 const routes = [
-  { path: '/', redirect: '/home' },
+  { path: '/', redirect: '/auth/splash' },
   { path: '/auth/splash', component: SplashScreen, meta: { showTabs: false } },
   { path: '/auth/welcome', component: WelcomeCarousel, meta: { showTabs: false } },
   { path: '/auth/login', component: LoginScreen, meta: { showTabs: false } },
@@ -98,16 +97,6 @@ const router = createRouter({
 })
 
 router.beforeEach((to) => {
-  const isNative = Capacitor.isNativePlatform()
-
-  if (isNative && !localStorage.getItem('auth_token')) {
-    localStorage.setItem('auth_token', 'dev-token')
-  }
-
-  if (isNative && to.path === '/auth/otp') {
-    return { path: '/home' }
-  }
-
   if (!to.meta.requiresAuth) return true
   const token = localStorage.getItem('auth_token')
   if (!token) return { path: '/auth/login', query: { redirect: to.fullPath } }

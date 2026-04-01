@@ -119,10 +119,6 @@ function goSchedule() {
   router.push('/booking/ride-options')
 }
 
-function goRideOptions() {
-  router.push('/booking/ride-options')
-}
-
 function goRewards() {
   router.push('/rewards')
 }

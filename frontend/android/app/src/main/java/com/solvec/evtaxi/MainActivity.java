@@ -1,6 +1,7 @@
 package com.solvec.evtaxi;
 
 import android.os.Bundle;
+import android.webkit.WebSettings;
 
 import com.getcapacitor.BridgeActivity;
 import com.solvec.evtaxi.plugins.NativePlacesPlugin;
@@ -10,5 +11,10 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(NativePlacesPlugin.class);
         super.onCreate(savedInstanceState);
+        // Allow HTTP requests from the HTTPS localhost WebView origin.
+        // The Capacitor config allowMixedContent flag is unreliable across
+        // WebView versions, so we set it explicitly here after bridge init.
+        getBridge().getWebView().getSettings()
+            .setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
     }
 }
