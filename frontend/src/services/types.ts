@@ -5,7 +5,24 @@ export type AuthOtpVerifyResponse = { ok: boolean; token: string }
 export type RegisterRequest = { name: string; phone: string; email?: string; password?: string }
 export type RegisterResponse = { ok: boolean; userId: string }
 
-export type UserProfile = { id: string; name: string }
+export type UserProfile = { id: string; name: string; role?: 'PASSENGER' | 'DRIVER' | 'ADMIN' }
+
+export type RideDetails = {
+  id: string
+  status: string
+  riderId: string
+  driverId?: string | null
+  pickupAddress: string
+  pickupLat: number
+  pickupLng: number
+  dropoffAddress: string
+  dropoffLat: number
+  dropoffLng: number
+  fareAmount: number
+  currency: string
+  paymentMethod: string
+  createdAt: string
+}
 
 export type FareEstimateRequest = {
   pickupLat: number

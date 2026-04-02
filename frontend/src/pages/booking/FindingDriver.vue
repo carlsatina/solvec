@@ -159,7 +159,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import NativeMap from '../../components/NativeMap.vue'
 import { useBookingStore } from '../../store/booking'
@@ -335,11 +335,25 @@ async function loadRoute() {
   }
 }
 
+// Navigate as soon as a driver accepts (status → ARRIVING) or any later status
+watch(() => booking.rideStatus, (status) => {
+  if (status === 'ARRIVING' || status === 'IN_PROGRESS' || status === 'COMPLETED') {
+    router.replace('/booking/driver-assigned')
+  }
+})
+
 onMounted(async () => {
   if (!booking.pickup || !booking.dropoff) {
     router.replace('/booking/destination')
     return
   }
+
+  // Re-subscribe in case this component mounted after createBooking() already ran
+  // (e.g. navigated back and forward, or page restored from bfcache)
+  if (booking.rideId && booking.rideStatus !== 'CANCELLED') {
+    booking.resubscribeToRideUpdates(booking.rideId)
+  }
+
   if (!booking.fareEstimate) await booking.estimateFare()
   await loadRoute()
   await nextTick()
@@ -362,7 +376,9 @@ async function cancelBooking() {
 onBeforeUnmount(() => {
   window.removeEventListener('resize', recalcSheetBounds)
   if (rafId.value != null) window.cancelAnimationFrame(rafId.value)
-  booking.unsubscribeFromRideUpdates()
+  // Do NOT unsubscribe here — the ride is still active and DriverAssigned
+  // needs the same socket handlers. Subscription is cleaned up by cancelBooking()
+  // or when the ride completes in TripInProgress.
 })
 </script>
 

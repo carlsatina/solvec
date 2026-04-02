@@ -5,6 +5,18 @@ import { getIo } from '../socket'
 
 const router = Router()
 
+// Active ride for a driver — must be before /:id to avoid route conflict
+router.get('/driver/:driverId/active', async (req, res) => {
+  const ride = await prisma.ride.findFirst({
+    where: {
+      driverId: req.params.driverId,
+      status: { in: ['ASSIGNED', 'ARRIVING', 'IN_PROGRESS'] }
+    },
+    orderBy: { createdAt: 'desc' }
+  })
+  res.json({ ride: ride ?? null })
+})
+
 router.get('/:id', async (req, res) => {
   const ride = await prisma.ride.findUnique({ where: { id: req.params.id } })
   if (!ride) return res.status(404).json({ error: 'Ride not found' })

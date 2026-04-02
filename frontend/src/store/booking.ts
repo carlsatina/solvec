@@ -23,11 +23,16 @@ export const useBookingStore = defineStore('booking', () => {
   const fareEstimate = ref<{ total: number; currency: string; distanceKm?: number; durationMin?: number } | null>(null)
   const rideId = ref<string | null>(null)
   const rideStatus = ref<string | null>(null)
+  const driverLocation = ref<{ lat: number; lng: number } | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  // Keep a reference to the active socket handler so we can remove only it
+  // Keep references to active socket handlers so we can remove only them
   let rideStatusHandler: ((payload: RideStatusPayload) => void) | null = null
+  let driverLocationHandler: ((payload: { lat: number; lng: number }) => void) | null = null
+
+  // True while both handlers are registered — lets pages avoid redundant resubscription
+  const hasActiveSubscription = ref(false)
 
   function setPickup(data: LocationPoint) {
     pickup.value = data
@@ -97,6 +102,7 @@ export const useBookingStore = defineStore('booking', () => {
     try {
       await api.cancelBooking(rideId.value)
       rideStatus.value = 'CANCELLED'
+      driverLocation.value = null
       unsubscribeFromRideUpdates()
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Cancel failed'
@@ -110,7 +116,7 @@ export const useBookingStore = defineStore('booking', () => {
     const socket = getSocket()
     socket.emit('join', { rideId: id })
 
-    // Remove only our previously registered handler before adding a new one
+    // Remove any previously registered handlers before adding new ones
     unsubscribeFromRideUpdates()
 
     rideStatusHandler = (payload: RideStatusPayload) => {
@@ -118,13 +124,39 @@ export const useBookingStore = defineStore('booking', () => {
       rideStatus.value = payload.status
     }
     socket.on('ride:status', rideStatusHandler)
+
+    driverLocationHandler = (payload: { lat: number; lng: number }) => {
+      driverLocation.value = { lat: payload.lat, lng: payload.lng }
+    }
+    socket.on('driver:location', driverLocationHandler)
+    hasActiveSubscription.value = true
   }
 
   function unsubscribeFromRideUpdates() {
-    if (!rideStatusHandler) return
     const socket = getSocket()
-    socket.off('ride:status', rideStatusHandler)
-    rideStatusHandler = null
+    if (rideStatusHandler) {
+      socket.off('ride:status', rideStatusHandler)
+      rideStatusHandler = null
+    }
+    if (driverLocationHandler) {
+      socket.off('driver:location', driverLocationHandler)
+      driverLocationHandler = null
+    }
+    hasActiveSubscription.value = false
+  }
+
+  function resetBooking() {
+    unsubscribeFromRideUpdates()
+    pickup.value = null
+    dropoff.value = null
+    rideType.value = 'ECO'
+    paymentMethod.value = 'CASH'
+    fareEstimate.value = null
+    rideId.value = null
+    rideStatus.value = null
+    driverLocation.value = null
+    loading.value = false
+    error.value = null
   }
 
   return {
@@ -135,6 +167,8 @@ export const useBookingStore = defineStore('booking', () => {
     fareEstimate,
     rideId,
     rideStatus,
+    driverLocation,
+    hasActiveSubscription,
     loading,
     error,
     setPickup,
@@ -144,6 +178,8 @@ export const useBookingStore = defineStore('booking', () => {
     estimateFare,
     createBooking,
     cancelBooking,
+    resetBooking,
+    resubscribeToRideUpdates: subscribeToRideUpdates,
     unsubscribeFromRideUpdates
   }
 })

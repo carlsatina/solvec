@@ -18,7 +18,8 @@ import type {
   DriverApplicationCreate,
   DriverApplicationUpdate,
   DriverDocumentCreate,
-  DriverAvailabilityCreate
+  DriverAvailabilityCreate,
+  RideDetails
 } from './types'
 
 export const api = {
@@ -48,5 +49,19 @@ export const api = {
     request<{ ok: boolean }>(`/driver-applications/${id}/documents`, { method: 'POST', body: payload }),
   setDriverAvailability: (id: string, payload: DriverAvailabilityCreate) =>
     request<{ ok: boolean }>(`/driver-applications/${id}/availability`, { method: 'POST', body: payload }),
-  getDriverApplication: (id: string) => request<DriverApplication>(`/driver-applications/${id}`)
+  getDriverApplication: (id: string) => request<DriverApplication>(`/driver-applications/${id}`),
+
+  // Driver operations
+  driverGoOnline: (driverId: string, lat: number, lng: number) =>
+    request<{ ok: boolean }>('/drivers/location', { method: 'POST', body: { driverId, lat, lng, isAvailable: true } }),
+  driverGoOffline: (driverId: string) =>
+    request<{ ok: boolean }>(`/drivers/${driverId}/availability`, { method: 'POST', body: { isAvailable: false } }),
+  driverUpdateLocation: (driverId: string, lat: number, lng: number) =>
+    request<{ ok: boolean }>('/drivers/location', { method: 'POST', body: { driverId, lat, lng } }),
+  driverGetActiveRide: (driverId: string) =>
+    request<{ ride: RideDetails | null }>(`/rides/driver/${driverId}/active`),
+  rideUpdateStatus: (rideId: string, status: string) =>
+    request<{ id: string; status: string }>(`/rides/${rideId}/status`, { method: 'POST', body: { status } }),
+  rideCancel: (rideId: string) =>
+    request<{ ok: boolean }>(`/bookings/${rideId}/cancel`, { method: 'POST' })
 }

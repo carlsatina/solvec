@@ -4,7 +4,7 @@ import { api } from '../services/api'
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem('auth_token'))
-  const user = ref<{ id: string; name: string } | null>(null)
+  const user = ref<{ id: string; name: string; role?: 'PASSENGER' | 'DRIVER' | 'ADMIN' } | null>(null)
   const loading = ref(false)
 
   async function sendOtp(phone: string) {
