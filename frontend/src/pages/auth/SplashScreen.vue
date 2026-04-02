@@ -99,7 +99,7 @@
           <path d="M86 20 L80 32 H86 L82 44 L92 30 H86 L90 20Z" fill="#fde68a" fill-opacity="0.9"/>
           <!-- TAXI label -->
           <rect x="54" y="8" width="52" height="10" rx="4" fill="#fde68a"/>
-          <text x="80" y="16.5" text-anchor="middle" font-size="6" font-weight="800" fill="#1a2e2e" font-family="system-ui">EV TAXI</text>
+          <text x="80" y="16.5" text-anchor="middle" font-size="6" font-weight="800" fill="#1a2e2e" font-family="system-ui">E-RIDE</text>
           <defs>
             <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stop-color="#4dd9d8"/>
@@ -125,7 +125,7 @@
     <div class="brand">
       <div class="brand-logo">
         <span class="brand-bolt">⚡</span>
-        <span class="brand-name">Solvec</span>
+        <span class="brand-name">E-Ride</span>
       </div>
       <div class="brand-tagline">Clean rides. Green future.</div>
     </div>

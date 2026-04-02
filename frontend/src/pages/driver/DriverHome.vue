@@ -76,7 +76,7 @@
           <circle cx="120" cy="62" r="2"  fill="#e2fafa"/>
           <path d="M86 20 L80 32 H86 L82 44 L92 30 H86 L90 20Z" fill="#f5a623" fill-opacity="0.9"/>
           <rect x="54" y="8" width="52" height="10" rx="4" fill="#f5a623"/>
-          <text x="80" y="16.5" text-anchor="middle" font-size="6" font-weight="800" fill="#1a2e2e" font-family="system-ui">SOLVEC EV</text>
+          <text x="80" y="16.5" text-anchor="middle" font-size="6" font-weight="800" fill="#1a2e2e" font-family="system-ui">E-RIDE</text>
           <defs>
             <linearGradient id="bodyG" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stop-color="#00c4bc"/>

@@ -61,7 +61,7 @@
           </div>
         </div>
 
-        <h2 class="sheet-title">Finding your driver<br><span class="brand-name">Solvec EV Taxi</span></h2>
+        <h2 class="sheet-title">Finding your driver<br><span class="brand-name">E-Ride Taxi</span></h2>
         <p class="sheet-sub">Connecting you with the nearest EV taxi. Hold tight!</p>
 
         <!-- Animated driver dots -->
@@ -89,7 +89,7 @@
               </svg>
             </div>
             <div>
-              <div class="trip-name">Solvec EV Taxi <span class="ev-badge">⚡ EV</span></div>
+              <div class="trip-name">E-Ride Taxi <span class="ev-badge">⚡ EV</span></div>
               <div class="trip-time">{{ bookingTime }}</div>
             </div>
           </div>

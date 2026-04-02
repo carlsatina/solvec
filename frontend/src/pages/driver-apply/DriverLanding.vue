@@ -1,7 +1,7 @@
 <template>
   <div class="app-screen">
     <AppHeader>
-      <template #title>Drive with Solvec</template>
+      <template #title>Drive with E-Ride</template>
       <template #subtitle>Earn with a premium EV fleet</template>
     </AppHeader>
     <div class="card">

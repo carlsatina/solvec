@@ -163,7 +163,7 @@
             <div class="featured-media feat-launch">
               <div class="feat-badge">New</div>
             </div>
-            <div class="featured-title">Solvec EV Taxi Launch</div>
+            <div class="featured-title">E-Ride Taxi Launch</div>
           </article>
           <article class="featured-card">
             <div class="featured-media feat-drive">

@@ -11,7 +11,7 @@
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1.8" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       </div>
       <div class="hero-title">Rate your ride</div>
-      <div class="hero-sub">How was your experience with your Solvec EV driver?</div>
+      <div class="hero-sub">How was your experience with your E-Ride driver?</div>
 
       <!-- Star selector -->
       <div class="stars-row" role="group" aria-label="Star rating">

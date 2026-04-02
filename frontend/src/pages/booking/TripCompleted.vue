@@ -25,7 +25,7 @@
       </div>
 
       <div class="hero-title">Trip completed!</div>
-      <div class="hero-sub">Thank you for riding electric with Solvec EV Taxi</div>
+      <div class="hero-sub">Thank you for riding electric with E-Ride Taxi</div>
 
       <!-- Fare -->
       <div class="fare-pill">

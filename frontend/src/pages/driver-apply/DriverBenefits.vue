@@ -2,7 +2,7 @@
   <div class="app-screen">
     <AppHeader>
       <template #title>Benefits</template>
-      <template #subtitle>Why drivers choose Solvec</template>
+      <template #subtitle>Why drivers choose E-Ride</template>
     </AppHeader>
     <div class="card">
       <div class="section-title">Guaranteed demand</div>

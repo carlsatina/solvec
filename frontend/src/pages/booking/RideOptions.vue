@@ -80,7 +80,7 @@
         <!-- Name + meta -->
         <div class="option-body">
           <div class="option-name-row">
-            <span class="option-name">Solvec EV Taxi</span>
+            <span class="option-name">E-Ride Taxi</span>
             <span class="ev-badge">⚡ EV</span>
           </div>
           <div class="option-meta-row">

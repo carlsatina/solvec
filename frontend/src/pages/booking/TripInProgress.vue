@@ -32,7 +32,7 @@
         </div>
         <div class="d-info">
           <div class="d-name">Your Driver</div>
-          <div class="d-sub">Solvec EV Taxi · ⭐ 4.9</div>
+          <div class="d-sub">E-Ride Taxi · ⭐ 4.9</div>
         </div>
         <a class="call-btn" href="tel:+639000000000" aria-label="Call driver">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.07 9.81 2 2 0 015 7.07h3a2 2 0 012 1.72c.13.96.36 1.9.7 2.81a2 2 0 01-.45 2.11L9.09 14.91a16 16 0 006 6z"/></svg>

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Solvec EV Taxi</string>
-    <string name="title_activity_main">Solvec EV Taxi</string>
+    <string name="app_name">E-Ride Taxi</string>
+    <string name="title_activity_main">E-Ride Taxi</string>
     <string name="package_name">com.solvec.evtaxi</string>
     <string name="custom_url_scheme">com.solvec.evtaxi</string>
 </resources>
