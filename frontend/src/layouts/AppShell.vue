@@ -17,6 +17,6 @@ const showTabs = computed(() => route.meta.showTabs !== false)
 <style scoped>
 .app-shell {
   min-height: 100vh;
-  padding-bottom: 86px;
+  padding-bottom: 72px;
 }
 </style>

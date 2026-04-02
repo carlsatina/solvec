@@ -1,113 +1,193 @@
 <template>
-  <div class="app-screen home">
-    <AppHeader>
-      <template #title>Hello, RC Satina</template>
-      <template #subtitle>Ready for a clean ride today?</template>
-      <template #action>
-        <button class="points-pill" type="button">
-          <span class="points-icon">✓</span>
-          <span class="points-value">15</span>
+  <div class="home">
+
+    <!-- ── Dark Hero ── -->
+    <div class="hero">
+      <!-- Top bar -->
+      <div class="top-bar">
+        <div class="greeting">
+          <div class="greeting-label">Good morning</div>
+          <div class="greeting-name">RC Satina 👋</div>
+        </div>
+        <div class="top-right">
+          <button class="notif-btn" type="button" aria-label="Notifications">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 01-3.46 0"/>
+            </svg>
+            <span class="notif-dot" aria-hidden="true"></span>
+          </button>
+          <button class="points-chip" type="button">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="#fbbf24" aria-hidden="true"><path d="M13 2L4.5 13.5H11L10 22L20.5 10.5H14L13 2Z"/></svg>
+            <span>15 pts</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search bar -->
+      <button class="search-bar" type="button" @click="goDropoff">
+        <div class="search-icon-wrap" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <span class="search-placeholder">Where to?</span>
+        <button class="schedule-btn" type="button" @click.stop="goSchedule">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Schedule
         </button>
-      </template>
-    </AppHeader>
+      </button>
 
-    <div class="search-card">
-      <button class="search-field" type="button" @click="goDropoff">
-        <span class="pin-icon" aria-hidden="true"></span>
-        <span class="search-text">Where to?</span>
-      </button>
-      <button class="schedule-pill" type="button" @click="goSchedule">
-        <span class="calendar-icon" aria-hidden="true"></span>
-        Schedule
-      </button>
+      <!-- Quick actions -->
+      <div class="quick-row">
+        <button class="quick-pill" type="button" @click="goDropoff">
+          <span class="quick-pill-icon car-pill" aria-hidden="true">
+            <svg viewBox="0 0 64 64" class="pill-svg" aria-hidden="true">
+              <rect x="4" y="34" width="54" height="16" rx="5"/>
+              <path d="M16 34 C18 23 24 19 32 19 C40 19 46 23 48 34Z"/>
+              <path d="M22 34 C23 26 27 22 32 22 L32 34Z" fill-opacity="0.35"/>
+              <path d="M32 34 L32 22 C37 22 41 26 42 34Z" fill-opacity="0.35"/>
+              <circle cx="16" cy="51" r="7"/>
+              <circle cx="48" cy="51" r="7"/>
+              <rect x="57" y="37" width="4" height="5" rx="2"/>
+              <path d="M34 22 L30 32 H34 L31 41 L38 31 H34 L36 22Z" style="fill:#fde68a"/>
+            </svg>
+          </span>
+          <span class="quick-pill-label">Book Car</span>
+        </button>
+
+        <button class="quick-pill" type="button" @click="goRewards">
+          <span class="quick-pill-icon subs-pill" aria-hidden="true">
+            <svg viewBox="0 0 64 64" class="pill-svg" aria-hidden="true">
+              <path d="M8 44 L8 28 L20 38 L32 14 L44 38 L56 28 L56 44Z"/>
+              <rect x="8" y="44" width="48" height="9" rx="4"/>
+              <circle cx="20" cy="48" r="3" fill-opacity="0.4"/>
+              <circle cx="32" cy="48" r="3" fill-opacity="0.4"/>
+              <circle cx="44" cy="48" r="3" fill-opacity="0.4"/>
+            </svg>
+          </span>
+          <span class="quick-pill-label">Members</span>
+        </button>
+
+        <button class="quick-pill" type="button">
+          <span class="quick-pill-icon rewards-pill" aria-hidden="true">
+            <svg viewBox="0 0 64 64" class="pill-svg" aria-hidden="true">
+              <polygon points="32,8 38,24 56,24 42,36 48,52 32,42 16,52 22,36 8,24 26,24"/>
+            </svg>
+          </span>
+          <span class="quick-pill-label">Rewards</span>
+        </button>
+
+        <button class="quick-pill" type="button">
+          <span class="quick-pill-icon saved-pill" aria-hidden="true">
+            <svg viewBox="0 0 64 64" class="pill-svg" aria-hidden="true">
+              <path d="M32 8C22 8 14 16 14 26 C14 40 32 56 32 56 C32 56 50 40 50 26 C50 16 42 8 32 8Z"/>
+              <circle cx="32" cy="26" r="6" fill-opacity="0.4"/>
+            </svg>
+          </span>
+          <span class="quick-pill-label">Saved</span>
+        </button>
+      </div>
     </div>
 
-    <div class="quick-row">
-      <button class="quick-item" type="button" @click="goDropoff">
-        <span class="quick-icon quick-icon-car" aria-hidden="true">
-          <svg viewBox="0 0 64 64" class="icon-svg" aria-hidden="true">
-            <rect x="12" y="28" width="40" height="16" rx="6" />
-            <rect x="20" y="20" width="24" height="12" rx="6" />
-            <circle cx="22" cy="46" r="6" />
-            <circle cx="42" cy="46" r="6" />
-          </svg>
-        </span>
-        <span>Car</span>
-      </button>
-      <button class="quick-item" type="button" @click="goRewards">
-        <span class="quick-icon quick-icon-subs" aria-hidden="true">
-          <svg viewBox="0 0 64 64" class="icon-svg" aria-hidden="true">
-            <circle cx="32" cy="32" r="20" />
-            <path d="M32 18l4.2 8.4 9.2 1.4-6.7 6.5 1.6 9.1L32 39l-8.3 4.4 1.6-9.1-6.7-6.5 9.2-1.4z" />
-          </svg>
-        </span>
-        <span>Subscription</span>
-      </button>
-    </div>
+    <!-- ── Body ── -->
+    <div class="body">
 
-    <section class="promo-section">
-      <div class="carousel" aria-label="Promotions">
-        <article class="promo-card promo-eco">
-          <div class="promo-copy">
-            <p class="promo-kicker">GOOD for the ENVIRONMENT</p>
-            <h3>Eco-Friendly Choice</h3>
-            <p>No smell, no smoke, no noise. Drive 100% electric.</p>
-            <button class="promo-button" type="button">Book now</button>
+      <!-- Eco impact bar -->
+      <div class="eco-bar">
+        <div class="eco-stat">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" aria-hidden="true"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><path d="M12 12c-2-3-1-7 3-8-1 4 2 6 2 8a5 5 0 01-10 0c0-1 .5-2 1-3 1 2 3 2 4 3z"/></svg>
+          <div>
+            <div class="eco-val">24.3 kg</div>
+            <div class="eco-label">CO₂ Saved</div>
           </div>
-          <div class="promo-visual"></div>
-        </article>
-        <article class="promo-card promo-savings">
-          <div class="promo-copy">
-            <p class="promo-kicker">SAVE MORE, RIDE MORE</p>
-            <h3>Membership Perks</h3>
-            <p>Enjoy lower fares, priority booking, and free charging.</p>
-            <button class="promo-button" type="button">Learn more</button>
+        </div>
+        <div class="eco-divider"></div>
+        <div class="eco-stat">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00c4bc" stroke-width="2" aria-hidden="true"><path d="M13 2L4.5 13.5H11L10 22L20.5 10.5H14L13 2Z" fill="#00c4bc"/></svg>
+          <div>
+            <div class="eco-val">8 rides</div>
+            <div class="eco-label">This month</div>
           </div>
-          <div class="promo-visual"></div>
-        </article>
-        <article class="promo-card promo-driver">
-          <div class="promo-copy">
-            <p class="promo-kicker">DRIVE WITH US</p>
-            <h3>Earn Big, Drive Clean</h3>
-            <p>Up to 90% commission sharing and daily cash-outs.</p>
-            <button class="promo-button" type="button">Apply now</button>
+        </div>
+        <div class="eco-divider"></div>
+        <div class="eco-stat">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#f5a623" aria-hidden="true"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+          <div>
+            <div class="eco-val">15 pts</div>
+            <div class="eco-label">Green Points</div>
           </div>
-          <div class="promo-visual"></div>
-        </article>
+        </div>
       </div>
-      <div class="carousel-dots" aria-hidden="true">
-        <span class="dot"></span>
-        <span class="dot active"></span>
-        <span class="dot"></span>
-        <span class="dot"></span>
-      </div>
-    </section>
 
-    <div class="section-header">Featured</div>
-    <div class="featured-grid">
-      <article class="featured-card">
-        <div class="featured-media featured-launch"></div>
-        <div class="featured-title">Green GSM Car Launch</div>
-      </article>
-      <article class="featured-card">
-        <div class="featured-media featured-drive"></div>
-        <div class="featured-title">Want to Drive Your Own EV?</div>
-      </article>
-      <article class="featured-card">
-        <div class="featured-media featured-care"></div>
-        <div class="featured-title">Eco Care for Every Trip</div>
-      </article>
-      <article class="featured-card">
-        <div class="featured-media featured-city"></div>
-        <div class="featured-title">Explore the City Clean</div>
-      </article>
+      <!-- Promos -->
+      <section>
+        <div class="section-row">
+          <span class="section-title">Promotions</span>
+          <button class="see-all" type="button">See all</button>
+        </div>
+        <div class="promo-scroll">
+          <article class="promo-card promo-eco">
+            <div class="promo-kicker">🌱 ECO RIDE</div>
+            <h3 class="promo-heading">Zero Emissions,<br>Zero Guilt</h3>
+            <p class="promo-sub">100% electric. No fumes, no noise.</p>
+            <button class="promo-btn" type="button" @click="goDropoff">Book now</button>
+            <div class="promo-orb promo-orb-1"></div>
+            <div class="promo-orb promo-orb-2"></div>
+          </article>
+          <article class="promo-card promo-member">
+            <div class="promo-kicker">👑 MEMBERSHIP</div>
+            <h3 class="promo-heading">Unlock Member<br>Pricing</h3>
+            <p class="promo-sub">Save up to 30% on every ride.</p>
+            <button class="promo-btn promo-btn-gold" type="button" @click="goRewards">Learn more</button>
+            <div class="promo-orb promo-orb-1"></div>
+            <div class="promo-orb promo-orb-2"></div>
+          </article>
+          <article class="promo-card promo-driver">
+            <div class="promo-kicker">🚗 DRIVE WITH US</div>
+            <h3 class="promo-heading">Earn More,<br>Drive Clean</h3>
+            <p class="promo-sub">Up to 90% commission, daily pay.</p>
+            <button class="promo-btn promo-btn-dark" type="button">Apply now</button>
+            <div class="promo-orb promo-orb-1"></div>
+            <div class="promo-orb promo-orb-2"></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Featured -->
+      <section>
+        <div class="section-row">
+          <span class="section-title">Featured</span>
+          <button class="see-all" type="button">See all</button>
+        </div>
+        <div class="featured-grid">
+          <article class="featured-card">
+            <div class="featured-media feat-launch">
+              <div class="feat-badge">New</div>
+            </div>
+            <div class="featured-title">Solvec EV Taxi Launch</div>
+          </article>
+          <article class="featured-card">
+            <div class="featured-media feat-drive">
+              <div class="feat-badge">Hiring</div>
+            </div>
+            <div class="featured-title">Drive Your Own EV</div>
+          </article>
+          <article class="featured-card">
+            <div class="featured-media feat-care"></div>
+            <div class="featured-title">Eco Care Every Trip</div>
+          </article>
+          <article class="featured-card">
+            <div class="featured-media feat-city"></div>
+            <div class="featured-title">Explore the City Clean</div>
+          </article>
+        </div>
+      </section>
+
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import AppHeader from '../../components/AppHeader.vue'
 
 const router = useRouter()
 
@@ -125,352 +205,412 @@ function goRewards() {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap');
-
+/* ── Base ── */
 .home {
-  padding-bottom: 120px;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
-  font-family: 'Manrope', var(--font-family);
+  background: #f1f5f8;
+  padding-bottom: 100px;
 }
 
-.search-card {
+/* ══════════════════════════════
+   HERO
+══════════════════════════════ */
+.hero {
+  background: linear-gradient(160deg, #071524 0%, #0c2233 55%, #0d3344 100%);
+  padding: 52px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-radius: 0 0 28px 28px;
+}
+
+/* Top bar */
+.top-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.greeting-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.45);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.greeting-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.top-right {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3);
-  border: 2px solid #37c6c5;
-  border-radius: 28px;
-  background: #f7fffe;
-  box-shadow: 0 10px 24px rgba(9, 86, 88, 0.08);
+  gap: 10px;
 }
 
-.search-field {
-  flex: 1;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-3);
+.notif-btn {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
   border: none;
-  background: transparent;
-  text-align: left;
-  font-size: 18px;
-  font-weight: 600;
-  color: #1b1f1e;
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
 }
 
-.search-text { color: #1b1f1e; }
-
-.pin-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #ffd36b 0%, #f4a601 70%);
-  position: relative;
-  box-shadow: 0 8px 16px rgba(244, 166, 1, 0.25);
-}
-
-.pin-icon::after {
-  content: '';
+.notif-dot {
   position: absolute;
-  inset: 9px;
-  border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg);
-  background: #fff;
-  opacity: 0.5;
+  top: 7px;
+  right: 7px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f5a623;
+  border: 2px solid #0c2233;
 }
 
-.schedule-pill {
+.points-chip {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: 10px 16px;
+  gap: 5px;
+  padding: 7px 12px;
   border-radius: 999px;
-  border: none;
-  background: #e8fbf9;
-  color: #0c5f60;
+  border: 1px solid rgba(245,166,35,0.35);
+  background: rgba(245,166,35,0.12);
+  color: #fbbf24;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
 }
 
-.calendar-icon {
-  width: 18px;
-  height: 18px;
-  border-radius: 6px;
-  border: 2px solid #0c5f60;
-  position: relative;
+/* Search bar */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 6px 0 14px;
+  height: 52px;
+  border-radius: 16px;
+  border: 1.5px solid rgba(0,196,188,0.3);
+  background: rgba(255,255,255,0.07);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
 }
 
-.calendar-icon::before,
-.calendar-icon::after {
-  content: '';
-  position: absolute;
-  background: #0c5f60;
+.search-bar:active {
+  background: rgba(255,255,255,0.11);
+  border-color: rgba(0,196,188,0.6);
 }
 
-.calendar-icon::before {
-  top: -4px;
-  left: 4px;
-  right: 4px;
-  height: 4px;
-  border-radius: 4px;
+.search-icon-wrap {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: #00c4bc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #fff;
 }
 
-.calendar-icon::after {
-  top: 6px;
-  left: 5px;
-  right: 5px;
-  height: 2px;
+.search-placeholder {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
 }
 
-.points-pill {
+.schedule-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
-  border-radius: 999px;
+  padding: 0 14px;
+  height: 38px;
+  border-radius: 12px;
   border: none;
-  background: #e8fbf9;
-  font-weight: 700;
-  color: #0c5f60;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.8);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
 }
 
-.points-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #38c6c5 0%, #5fe7d4 100%);
-  color: #fff;
-  font-size: 14px;
-}
+.schedule-btn:active { background: rgba(255,255,255,0.18); }
 
+/* Quick action pills */
 .quick-row {
-  display: flex;
-  gap: var(--space-5);
-  justify-content: flex-start;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
 }
 
-.quick-item {
-  flex: 1;
+.quick-pill {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-2);
+  gap: 7px;
   border: none;
   background: transparent;
-  font-weight: 600;
-  color: #1b1f1e;
+  cursor: pointer;
 }
 
-.quick-icon {
-  width: 64px;
-  height: 64px;
-  border-radius: 18px;
-  display: inline-flex;
+.quick-pill-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 12px 20px rgba(20, 89, 88, 0.16);
 }
 
-.icon-svg {
-  width: 36px;
-  height: 36px;
-  fill: #ffffff;
+.pill-svg {
+  width: 30px;
+  height: 30px;
+  fill: #fff;
 }
 
-.quick-icon-car {
-  background: linear-gradient(135deg, #66e0d1 0%, #34b7b1 100%);
+.car-pill    { background: linear-gradient(145deg, #00c4bc, #00908a); box-shadow: 0 6px 16px rgba(0,196,188,0.35); }
+.subs-pill   { background: linear-gradient(145deg, #f5a623, #d4820a); box-shadow: 0 6px 16px rgba(245,166,35,0.35); }
+.rewards-pill{ background: linear-gradient(145deg, #8b5cf6, #6d28d9); box-shadow: 0 6px 16px rgba(139,92,246,0.35); }
+.saved-pill  { background: linear-gradient(145deg, #3b82f6, #1d4ed8); box-shadow: 0 6px 16px rgba(59,130,246,0.35); }
+
+.quick-pill-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.7);
+  white-space: nowrap;
 }
 
-.quick-icon-subs {
-  background: linear-gradient(135deg, #ffe08c 0%, #f2b705 100%);
-}
-
-.promo-section {
+/* ══════════════════════════════
+   BODY
+══════════════════════════════ */
+.body {
+  padding: 16px 16px 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: 20px;
 }
 
-.carousel {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 88%;
-  gap: var(--space-4);
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  padding-bottom: 6px;
-}
-
-.carousel::-webkit-scrollbar { display: none; }
-
-.promo-card {
-  scroll-snap-align: center;
+/* Eco stats */
+.eco-bar {
   display: flex;
-  justify-content: space-between;
-  align-items: stretch;
-  gap: var(--space-4);
-  border-radius: 20px;
-  padding: var(--space-5);
-  color: #0b3f3b;
-  position: relative;
-  overflow: hidden;
-}
-
-.promo-eco {
-  background: linear-gradient(135deg, #c8f08e 0%, #b7e96c 35%, #8edbd2 100%);
-}
-
-.promo-savings {
-  background: linear-gradient(135deg, #8ddaf7 0%, #52b7ff 45%, #1f5ea8 100%);
-  color: #f4fbff;
-}
-
-.promo-driver {
-  background: linear-gradient(135deg, #2b5fb9 0%, #12336f 100%);
-  color: #f7f9ff;
-}
-
-.promo-copy {
-  max-width: 60%;
-  z-index: 1;
-}
-
-.promo-copy h3 {
-  margin: 6px 0 6px;
-  font-size: 20px;
-}
-
-.promo-copy p {
-  margin: 0 0 12px;
-  font-size: 14px;
-}
-
-.promo-kicker {
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 0.04em;
-}
-
-.promo-button {
-  border: none;
-  border-radius: 999px;
-  padding: 8px 16px;
-  font-weight: 700;
-  background: #ff6b9d;
-  color: #fff;
-}
-
-.promo-savings .promo-button {
-  background: #0c2957;
-}
-
-.promo-driver .promo-button {
-  background: #ffb703;
-  color: #1b1f1e;
-}
-
-.promo-visual {
-  width: 38%;
+  align-items: center;
+  background: #fff;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.35);
-  position: relative;
-  overflow: hidden;
+  padding: 14px 0;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 
-.promo-visual::before {
-  content: '';
-  position: absolute;
-  inset: 16px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
-}
-
-.carousel-dots {
+.eco-stat {
+  flex: 1;
   display: flex;
+  align-items: center;
   justify-content: center;
   gap: 8px;
 }
 
-.dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: #cbdad6;
-}
-
-.dot.active {
-  width: 18px;
-  background: #37c6c5;
-}
-
-.section-header {
-  font-size: 20px;
+.eco-val {
+  font-size: 14px;
   font-weight: 700;
+  color: #111827;
+  line-height: 1.1;
 }
 
+.eco-label {
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 500;
+  margin-top: 1px;
+}
+
+.eco-divider {
+  width: 1px;
+  height: 28px;
+  background: #e5e7eb;
+  flex-shrink: 0;
+}
+
+/* Section header */
+.section-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.01em;
+}
+
+.see-all {
+  font-size: 13px;
+  font-weight: 600;
+  color: #00c4bc;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Promo cards */
+.promo-scroll {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 78%;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 4px;
+  margin: 0 -16px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.promo-scroll::-webkit-scrollbar { display: none; }
+
+.promo-card {
+  scroll-snap-align: start;
+  border-radius: 20px;
+  padding: 18px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  overflow: hidden;
+  min-height: 150px;
+}
+
+.promo-eco    { background: linear-gradient(135deg, #064e3b 0%, #065f46 40%, #047857 100%); }
+.promo-member { background: linear-gradient(135deg, #1c1405 0%, #3b1c00 40%, #78350f 100%); }
+.promo-driver { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); }
+
+.promo-kicker {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.55);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.promo-heading {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px;
+}
+
+.promo-sub {
+  font-size: 12px;
+  color: rgba(255,255,255,0.55);
+  margin: 0 0 10px;
+  line-height: 1.4;
+}
+
+.promo-btn {
+  align-self: flex-start;
+  border: none;
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #00c4bc;
+  color: #fff;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.promo-btn-gold { background: #f5a623; color: #1c1405; }
+.promo-btn-dark { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.25); }
+
+/* Decorative orbs */
+.promo-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.promo-orb-1 {
+  width: 120px; height: 120px;
+  right: -30px; bottom: -30px;
+  background: rgba(255,255,255,0.06);
+}
+.promo-orb-2 {
+  width: 70px; height: 70px;
+  right: 40px; top: -20px;
+  background: rgba(255,255,255,0.04);
+}
+
+/* Featured */
 .featured-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-4);
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
 .featured-card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-}
-
-.featured-title {
-  font-size: 14px;
-  font-weight: 600;
+  gap: 6px;
 }
 
 .featured-media {
-  height: 140px;
-  border-radius: 18px;
-  background-size: cover;
-  background-position: center;
+  height: 110px;
+  border-radius: 16px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 10px 22px rgba(16, 24, 22, 0.12);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.1);
 }
 
-.featured-launch {
-  background-image: linear-gradient(135deg, #5ed4d1 0%, #8ae47d 100%);
-}
-
-.featured-drive {
-  background-image: linear-gradient(135deg, #1a3b77 0%, #3094e7 70%);
-}
-
-.featured-care {
-  background-image: linear-gradient(135deg, #8be98b 0%, #45b26b 100%);
-}
-
-.featured-city {
-  background-image: linear-gradient(135deg, #f7d38f 0%, #f09a5a 100%);
-}
+.feat-launch { background: linear-gradient(135deg, #00c4bc 0%, #4ade80 100%); }
+.feat-drive  { background: linear-gradient(135deg, #0c1a2e 0%, #1d4ed8 100%); }
+.feat-care   { background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%); }
+.feat-city   { background: linear-gradient(135deg, #f5a623 0%, #ef4444 100%); }
 
 .featured-media::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0));
+  background: linear-gradient(160deg, rgba(255,255,255,0.2) 0%, transparent 60%);
 }
 
-@media (max-width: 420px) {
-  .search-card {
-    flex-direction: column;
-    align-items: stretch;
-  }
+.feat-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(0,0,0,0.45);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  z-index: 1;
+}
 
-  .promo-copy { max-width: 70%; }
-
-  .featured-media { height: 120px; }
+.featured-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  line-height: 1.3;
 }
 </style>
