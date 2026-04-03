@@ -1,10 +1,10 @@
-package com.solvec.evtaxi;
+package com.eride.taxi;
 
 import android.os.Bundle;
 import android.webkit.WebSettings;
 
 import com.getcapacitor.BridgeActivity;
-import com.solvec.evtaxi.plugins.NativePlacesPlugin;
+import com.eride.taxi.plugins.NativePlacesPlugin;
 
 public class MainActivity extends BridgeActivity {
     @Override

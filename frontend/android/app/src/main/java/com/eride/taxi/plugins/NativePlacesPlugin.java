@@ -1,4 +1,4 @@
-package com.solvec.evtaxi.plugins;
+package com.eride.taxi.plugins;
 
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;

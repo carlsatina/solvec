@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">E-Ride Taxi</string>
     <string name="title_activity_main">E-Ride Taxi</string>
-    <string name="package_name">com.solvec.evtaxi</string>
-    <string name="custom_url_scheme">com.solvec.evtaxi</string>
+    <string name="package_name">com.eride.taxi</string>
+    <string name="custom_url_scheme">com.eride.taxi</string>
 </resources>

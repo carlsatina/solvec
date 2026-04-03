@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "com.solvec.evtaxi"
+    namespace "com.eride.taxi"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.solvec.evtaxi"
+        applicationId "com.eride.taxi"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
